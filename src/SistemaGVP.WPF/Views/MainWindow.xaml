@@ -1,0 +1,231 @@
+<Window x:Class="SistemaGVP.WPF.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:vm="clr-namespace:SistemaGVP.WPF.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Sistema GVP — Punto de Venta"
+        Width="1366" Height="768"
+        MinWidth="1024" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        d:DataContext="{d:DesignInstance vm:MainWindowViewModel}">
+
+    <Grid>
+        <ContentControl x:Name="LoginArea"
+                        HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Stretch"
+                        Visibility="{Binding IsLoggedIn, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                        Panel.ZIndex="20" />
+
+        <ui:NavigationView x:Name="RootNavigationView"
+                           Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibilityConverter}}"
+                           IsPaneToggleVisible="False"
+                           PaneDisplayMode="Left"
+                           IsPaneOpen="True"
+                           IsBackButtonVisible="Collapsed">
+
+            <ui:NavigationView.Header>
+                <Grid Margin="8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{DynamicResource PrimaryBrush}" CornerRadius="6" Padding="8,4">
+                            <TextBlock Text="GVP" FontSize="14" FontWeight="Bold" Foreground="White" />
+                        </Border>
+                        <TextBlock Text="{Binding CurrentModuleName}"
+                                   FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center" Margin="10,0,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <ui:Button Command="{Binding ToggleThemeCommand}"
+                                   Appearance="Transparent"
+                                   Width="36" Height="36"
+                                   ToolTip="{Binding ThemeTooltip}">
+                            <iconPacks:PackIconMaterial Kind="{Binding ThemeIconKind}" FontSize="20" />
+                        </ui:Button>
+
+                        <Border Width="1" Height="24"
+                                Background="{DynamicResource BorderBrush}"
+                                Margin="0,0,8,0" />
+
+                        <ui:Button Command="{Binding LogoutCommand}" Appearance="Transparent">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="34" Height="34"
+                                        CornerRadius="17"
+                                        Background="{DynamicResource PrimaryBrush}"
+                                        Margin="0,0,10,0">
+                                    <TextBlock Text="{Binding UserInitials}"
+                                               FontSize="14" FontWeight="Bold"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding UserDisplayName}"
+                                               FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <TextBlock Text="{Binding UserRole}"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </ui:Button>
+                    </StackPanel>
+                </Grid>
+            </ui:NavigationView.Header>
+
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItemHeader Text="PRINCIPAL" />
+                <ui:NavigationViewItem Command="{Binding NavigateToDashboardCommand}" TargetPageTag="Dashboard">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="ChartBar" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Dashboard" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+
+                <ui:NavigationViewItemHeader Text="VENTAS" />
+                <ui:NavigationViewItem Command="{Binding NavigateToSalesCommand}" TargetPageTag="Sales">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Cart" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Punto de Venta" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Command="{Binding NavigateToSalesHistoryCommand}" TargetPageTag="SalesHistory">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Receipt" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Historial de Ventas" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+
+                <ui:NavigationViewItemHeader Text="GESTIÓN" />
+                <ui:NavigationViewItem Command="{Binding NavigateToProductsCommand}" TargetPageTag="Products">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="PackageVariant" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Productos" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Command="{Binding NavigateToCategoriesCommand}" TargetPageTag="Categories">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Folder" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Categorías" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Command="{Binding NavigateToCustomersCommand}" TargetPageTag="Customers">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="AccountGroup" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Clientes" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Command="{Binding NavigateToInventoryCommand}" TargetPageTag="Inventory">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="ClipboardText" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Inventario" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+
+                <ui:NavigationViewItemHeader Text="OPERACIONES" />
+                <ui:NavigationViewItem Command="{Binding NavigateToSuppliersCommand}" TargetPageTag="Suppliers">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Factory" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Proveedores" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Command="{Binding NavigateToReportsCommand}" TargetPageTag="Reports">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="ChartLine" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Reportes" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+
+                <ui:NavigationViewItemHeader Text="ADMINISTRACIÓN" />
+                <ui:NavigationViewItem Command="{Binding NavigateToUsersCommand}" TargetPageTag="Users"
+                                       Visibility="{Binding ShowUserManagement, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Account" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Usuarios" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Command="{Binding NavigateToSettingsCommand}" TargetPageTag="Settings"
+                                       Visibility="{Binding ShowUserManagement, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Cog" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Configuración" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+
+                <ui:NavigationViewItemHeader Text="SISTEMA" />
+                <ui:NavigationViewItem Command="{Binding NavigateToBackupCommand}" TargetPageTag="Backup">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="ContentSave" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Backup" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Command="{Binding NavigateToAuditLogCommand}" TargetPageTag="AuditLog"
+                                       Visibility="{Binding ShowUserManagement, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ui:NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="ClipboardText" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Auditoría" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ui:NavigationViewItem.Content>
+                </ui:NavigationViewItem>
+            </ui:NavigationView.MenuItems>
+
+            <ui:NavigationView.ContentOverlay>
+                <ContentControl x:Name="MainContentArea"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch" />
+            </ui:NavigationView.ContentOverlay>
+
+            <ui:NavigationView.PaneFooter>
+                <StackPanel Margin="12,12">
+                    <TextBlock Text="Sistema GVP v2.0"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+                    <TextBlock Text="© 2025 GVP Solutions"
+                               FontSize="10"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                </StackPanel>
+            </ui:NavigationView.PaneFooter>
+        </ui:NavigationView>
+
+        <ui:SnackbarPresenter x:Name="SnackbarPresenter"
+                              Panel.ZIndex="30" />
+
+        <ui:ContentDialogHost x:Name="RootContentDialogHost"
+                               Panel.ZIndex="40" />
+    </Grid>
+</Window>

@@ -1,0 +1,163 @@
+<UserControl x:Class="SistemaGVP.WPF.Views.BackupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SistemaGVP.WPF.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:BackupViewModel}"
+             Background="{DynamicResource BackgroundBrush}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ========== CABECERA ========== -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+            <Border Width="44" Height="44" CornerRadius="12" Background="{DynamicResource PrimaryBrush}">
+                <TextBlock Text="&#x1F4BE;" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <StackPanel VerticalAlignment="Center" Margin="14,0,0,0">
+                <TextBlock Text="Gestión de Backups" Style="{StaticResource Heading2Style}" />
+                <TextBlock Text="Crea, restaura y administra copias de seguridad de la base de datos" FontSize="13" Foreground="{DynamicResource TextMutedBrush}" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ========== TOOLBAR ========== -->
+        <Border Grid.Row="1" Style="{StaticResource ToolbarStyle}" Padding="12,10"
+                Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="➕ Crear Backup"
+                        Command="{Binding CreateBackupCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Height="36"
+                        Padding="16,0"
+                        Margin="0,0,8,0"
+                        ToolTipService.ToolTip="Crear una nueva copia de seguridad" />
+                <Button Content="🔄 Actualizar"
+                        Command="{Binding RefreshCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Height="36"
+                        Padding="16,0"
+                        ToolTipService.ToolTip="Recargar la lista de backups" />
+            </StackPanel>
+        </Border>
+
+        <!-- ========== MENSAJES DE ESTADO ========== -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,8" VerticalAlignment="Top">
+            <TextBlock Text="{Binding StatusMessage}"
+                       Visibility="{Binding HasStatusMessage, Converter={StaticResource BoolToVisibilityConverter}}"
+                       FontSize="13"
+                       Foreground="{DynamicResource SuccessBrush}" />
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisibilityConverter}}"
+                       FontSize="13"
+                       Foreground="{DynamicResource DangerBrush}"
+                       Margin="0,4,0,0" />
+        </StackPanel>
+
+        <!-- ========== DATAGRID DE BACKUPS ========== -->
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="0">
+        <DataGrid ItemsSource="{Binding Items}"
+                  AutoGenerateColumns="False"
+                  RowHeight="42"
+                  AlternatingRowBackground="{DynamicResource DataGridRowAltBrush}"
+                  AlternationCount="2"
+                  Margin="0,0,0,0"
+                  Style="{StaticResource DataGridStyle}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Nombre del Archivo"
+                                    Binding="{Binding FileName}"
+                                    Width="*" />
+                <DataGridTemplateColumn Header="Tamaño"
+                                        Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding FileSizeDisplay}"
+                                       HorizontalAlignment="Right"
+                                       Margin="0,0,12,0"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       FontSize="13"
+                                       VerticalAlignment="Center" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Fecha de Creación"
+                                        Width="180">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:dd/MM/yyyy HH:mm}}"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       FontSize="13"
+                                       VerticalAlignment="Center" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Acciones"
+                                        Width="160">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                <Button Content="🔄 Restaurar"
+                                        Command="{Binding DataContext.RestoreBackupCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource IconButtonStyle}"
+                                        FontSize="12"
+                                        Padding="8,4"
+                                        MinWidth="36"
+                                        ToolTipService.ToolTip="Restaurar este backup"
+                                        Margin="0,0,4,0" />
+                                <Button Content="🗑️ Eliminar"
+                                        Command="{Binding DataContext.DeleteBackupCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource IconButtonStyle}"
+                                        FontSize="12"
+                                        Padding="8,4"
+                                        MinWidth="36"
+                                        ToolTipService.ToolTip="Eliminar este backup" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        </Border>
+
+        <!-- ========== FOOTER STATUS BAR ========== -->
+        <Border Grid.Row="3"
+                Padding="14,10"
+                Background="{DynamicResource SurfaceAltBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,1,0,0"
+                CornerRadius="0,0,12,12"
+                Margin="0,0,0,0">
+            <TextBlock Text="{Binding StatusMessage}"
+                       FontSize="12"
+                       Foreground="{DynamicResource SuccessBrush}"
+                       Visibility="{Binding HasStatusMessage, Converter={StaticResource BoolToVisibilityConverter}}" />
+        </Border>
+
+        <!-- ========== LOADING OVERLAY ========== -->
+        <Border Grid.RowSpan="4"
+                Background="{DynamicResource OverlayBgBrush}"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel VerticalAlignment="Center"
+                        HorizontalAlignment="Center">
+                <ProgressBar IsIndeterminate="True"
+                             Width="300"
+                             Height="6"
+                             Margin="0,0,0,12" />
+                <TextBlock Text="Procesando..."
+                           FontSize="14"
+                           Foreground="{DynamicResource TextInverseBrush}"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

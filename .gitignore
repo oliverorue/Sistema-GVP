@@ -1,0 +1,29 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dbmdl
+*.db
+*.jfm
+*.log
+*.vs/
+# IDE
+.vs/
+.vscode/
+*.sln.DotSettings.user
+# Database
+*.db
+*.db-shm
+*.db-wal
+# Logs
+logs/
+*.log
+# Build
+packages/
+*.nupkg
+# OS
+.DS_Store
+Thumbs.db
+# Dotnet tools
