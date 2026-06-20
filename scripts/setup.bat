@@ -12,7 +12,7 @@ echo   Sistema GVP POS - Setup Inicial
 echo ========================================
 echo.
 
-echo [1/3] Restaurando paquetes NuGet...
+echo [1/4] Restaurando paquetes NuGet...
 dotnet restore
 if %errorlevel% neq 0 (
     echo ERROR: Fallo la restauracion de paquetes.
@@ -22,7 +22,7 @@ if %errorlevel% neq 0 (
 echo OK.
 echo.
 
-echo [2/3] Compilando solucion...
+echo [2/4] Compilando solucion .NET...
 dotnet build SistemaGVP.sln --nologo
 if %errorlevel% neq 0 (
     echo ERROR: Fallo la compilacion.
@@ -32,8 +32,20 @@ if %errorlevel% neq 0 (
 echo OK.
 echo.
 
-echo [3/3] Creando/actualizando base de datos...
-dotnet ef database update --project src\SistemaGVP.Infrastructure --startup-project src\SistemaGVP.WPF
+echo [3/4] Instalando dependencias del frontend...
+cd src\electron-app
+call npm install
+if %errorlevel% neq 0 (
+    echo ERROR: Fallo la instalacion de dependencias.
+    pause
+    exit /b 1
+)
+cd /d "%~dp0.."
+echo OK.
+echo.
+
+echo [4/4] Creando/actualizando base de datos...
+dotnet ef database update --project src\SistemaGVP.Infrastructure --startup-project src\SistemaGVP.API
 if %errorlevel% neq 0 (
     echo ERROR: Fallo la migracion de base de datos.
     pause

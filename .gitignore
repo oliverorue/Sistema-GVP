@@ -26,4 +26,22 @@ packages/
 # OS
 .DS_Store
 Thumbs.db
-# Dotnet tools
+# License keys
+scripts/private.pem
+scripts/*.lic
+
+# Frontend dependencies
+src/electron-app/node_modules/
+
+# Build output
+src/electron-app/dist/
+src/electron-app/dist-electron/
+src/electron-app/release/
+src/electron-app/backend-publish/
+
+# Runtime artifacts
+api.err
+api.log
+
+# TypeScript
+*.tsbuildinfo

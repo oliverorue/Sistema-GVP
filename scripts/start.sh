@@ -1,32 +1,84 @@
 #!/bin/bash
-# ========================================
-#   Sistema GVP POS - Punto de Venta
-#   NOTA: WPF solo funciona en Windows.
-#   Este script solo es valido en Windows
-#   con WSL/Git Bash.
-# ========================================
-
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
+API_PID=""
+
+cleanup() {
+  if [ -n "$API_PID" ] && kill -0 "$API_PID" 2>/dev/null; then
+    echo ""
+    echo "Deteniendo API (PID $API_PID)..."
+    kill "$API_PID" 2>/dev/null
+    wait "$API_PID" 2>/dev/null
+  fi
+  exit 0
+}
+trap cleanup SIGINT SIGTERM EXIT
+
 echo "========================================"
-echo "  Sistema GVP POS - Punto de Venta"
+echo "  Sistema GVP POS - Inicio (Linux)"
 echo "========================================"
 echo ""
+echo "Elige el modo de inicio:"
+echo "  [1] API + React Vite  - Backend + Frontend en navegador (desarrollo)"
+echo "  [2] API sola          - Solo backend en http://127.0.0.1:5000"
+echo "  [3] Produccion local  - Backend compilado + Electron (requiere build.sh primero)"
+echo ""
 
-if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == CYGWIN* || "$(uname -s)" == MSYS* ]]; then
-    echo "[1/2] Compilando proyecto WPF..."
-    dotnet build "$PROJECT_DIR/src/SistemaGVP.WPF/SistemaGVP.WPF.csproj" --nologo
-    echo ""
+read -p "Selecciona (1/2/3): " MODE
 
-    echo "[2/2] Iniciando aplicacion..."
-    dotnet run --project "$PROJECT_DIR/src/SistemaGVP.WPF/SistemaGVP.WPF.csproj" --no-build
-else
-    echo "ERROR: WPF solo funciona en Windows."
-    echo "Este proyecto requiere .NET 8 SDK + Windows 10/11."
+wait_for_api() {
+  echo "Esperando a que la API responda..."
+  for i in $(seq 1 30); do
+    if curl -sf http://127.0.0.1:5000/health >/dev/null 2>&1; then
+      echo "API lista."
+      return 0
+    fi
+    sleep 1
+  done
+  echo "ERROR: La API no respondió después de 30 segundos."
+  return 1
+}
+
+case "$MODE" in
+  1)
     echo ""
-    echo "Ejecute scripts\\start.bat desde una terminal de Windows."
+    echo "[1/2] Iniciando API en http://127.0.0.1:5000..."
+    dotnet run --project "$PROJECT_DIR/src/SistemaGVP.API/SistemaGVP.API.csproj" &
+    API_PID=$!
+
+    wait_for_api
+
+    echo ""
+    echo "[2/2] Iniciando frontend React..."
+    cd "$PROJECT_DIR/src/electron-app"
+    npm run dev
+    ;;
+
+  2)
+    echo ""
+    echo "Iniciando API sola en http://127.0.0.1:5000..."
+    dotnet run --project "$PROJECT_DIR/src/SistemaGVP.API/SistemaGVP.API.csproj"
+    ;;
+
+  3)
+    echo ""
+    echo "[1/2] Iniciando backend compilado..."
+    "$PROJECT_DIR/src/electron-app/backend-publish/SistemaGVP.API" --urls http://127.0.0.1:5000 &
+    API_PID=$!
+
+    wait_for_api
+
+    echo ""
+    echo "[2/2] Iniciando Electron..."
+    cd "$PROJECT_DIR/src/electron-app"
+    GVPSKIPBACKEND=1 npx electron .
+    ;;
+
+  *)
+    echo "Opción no válida."
     exit 1
-fi
+    ;;
+esac

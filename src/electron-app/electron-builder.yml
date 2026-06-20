@@ -1,0 +1,38 @@
+appId: com.sistemagvp.pos
+productName: Sistema GVP
+directories:
+  output: release
+  buildResources: build
+
+asar: false
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+
+extraResources:
+  - from: backend-publish
+    to: backend
+    filter:
+      - "**/*"
+
+win:
+  sign: null
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icon.ico
+
+mac:
+  target: dmg
+  icon: build/icon.icns
+
+linux:
+  target: AppImage
+  icon: build/icon.png
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  perMachine: false
