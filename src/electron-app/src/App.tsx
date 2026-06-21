@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './stores/authStore'
 import LoginScreen from './screens/LoginScreen'
 import DashboardScreen from './screens/DashboardScreen'
@@ -21,7 +21,7 @@ import ProtectedRoute from './components/layout/ProtectedRoute'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/change-password" element={<ChangePasswordScreen />} />
@@ -45,6 +45,6 @@ export default function App() {
           </Route>
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }

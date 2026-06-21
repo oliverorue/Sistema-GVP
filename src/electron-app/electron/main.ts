@@ -75,7 +75,6 @@ function createWindow() {
       preload: join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      webSecurity: false,
     },
   });
   startupLog(`Window created, __dirname=${__dirname}`);
