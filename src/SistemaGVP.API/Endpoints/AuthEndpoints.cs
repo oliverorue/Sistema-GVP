@@ -1,8 +1,10 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using SistemaGVP.API.Middleware;
 using SistemaGVP.Application.Common;
 using SistemaGVP.Application.DTOs;
 using SistemaGVP.Application.Interfaces;
+using SistemaGVP.Domain.Interfaces;
 
 namespace SistemaGVP.API.Endpoints;
 
@@ -88,13 +90,25 @@ public static class AuthEndpoints
         group.MapPost("/change-password", async (
             [FromBody] ChangePasswordRequest request,
             IUserService userService,
-            ICurrentUserService currentUser) =>
+            ICurrentUserService currentUser,
+            IUserRepository userRepository,
+            IMapper mapper) =>
         {
-            var userDto = new UserDto
-            {
-                Id = currentUser.UserId,
-                Password = request.NewPassword
-            };
+            // Fetch the current user to get all required fields
+            var user = await userRepository.GetByIdAsync(currentUser.UserId);
+            if (user == null)
+                return Results.Ok(new
+                {
+                    isSuccess = false,
+                    data = (object?)null,
+                    message = "Usuario no encontrado.",
+                    errors = Array.Empty<string>()
+                });
+
+            // Create a complete UserDto from the existing user
+            var userDto = mapper.Map<UserDto>(user);
+            userDto.Password = request.NewPassword;
+            userDto.MustChangePassword = false;
 
             var result = await userService.UpdateAsync(userDto);
 
