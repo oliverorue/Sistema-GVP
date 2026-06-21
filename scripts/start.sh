@@ -65,9 +65,22 @@ case "$MODE" in
 
   3)
     echo ""
+    BACKEND_PUBLISH_DIR="$PROJECT_DIR/src/electron-app/backend-publish"
+    BACKEND_BIN="$BACKEND_PUBLISH_DIR/SistemaGVP.API"
+
+    if [ ! -f "$BACKEND_BIN" ]; then
+      echo "Backend compilado no encontrado. Publicando..."
+      dotnet publish "$PROJECT_DIR/src/SistemaGVP.API/SistemaGVP.API.csproj" \
+        -c Release --self-contained -r linux-x64 \
+        -o "$BACKEND_PUBLISH_DIR"
+      echo "Publicación completada."
+    fi
+
     echo "[1/2] Iniciando backend compilado..."
-    "$PROJECT_DIR/src/electron-app/backend-publish/SistemaGVP.API" --urls http://127.0.0.1:5000 &
+    cd "$BACKEND_PUBLISH_DIR"
+    ./SistemaGVP.API --urls http://127.0.0.1:5000 &
     API_PID=$!
+    cd "$PROJECT_DIR"
 
     wait_for_api
 

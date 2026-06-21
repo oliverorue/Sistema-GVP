@@ -23,6 +23,11 @@ echo "[3/4] Instalando dependencias del frontend..."
 cd "$PROJECT_DIR/src/electron-app"
 npm install
 echo "OK."
+
+echo "[3b/4] Instalando binario de Electron para Linux..."
+cd "$PROJECT_DIR/src/electron-app"
+node node_modules/electron/install.js 2>/dev/null
+echo "OK."
 echo ""
 
 echo "[4/4] Creando/actualizando base de datos..."
