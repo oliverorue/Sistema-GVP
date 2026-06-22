@@ -33,7 +33,7 @@ public static class CustomerEndpoints
             return result.IsSuccess
                 ? Results.Ok(new { isSuccess = true, data = result.Data, message = result.Message, errors = result.Errors })
                 : Results.Ok(new { isSuccess = false, data = (object?)null, message = result.Message, errors = result.Errors });
-        });
+        }).RequireAuthorization("Admin");
 
         group.MapPut("/{id:int}", async (int id, [FromBody] CustomerDto dto, ICustomerService service) =>
         {

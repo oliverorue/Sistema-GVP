@@ -90,6 +90,7 @@ export interface SaleDetail {
   productId: number
   productName: string
   barcode: string
+  unit: string
   quantity: number
   unitPrice: number
   discount: number
@@ -144,6 +145,7 @@ export interface Company {
   email: string
   logoUrl?: string
   taxRate: number
+  ivaIncluido: boolean
   currency: string
   lowStockThreshold: number
   isActive: boolean

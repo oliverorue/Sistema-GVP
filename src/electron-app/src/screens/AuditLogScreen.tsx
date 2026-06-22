@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Filter, X } from 'lucide-react'
-import { toast } from 'sonner'
+import { Filter } from 'lucide-react'
 import { auditService } from '../services/auditService'
 import { formatDateTime } from '../utils/format'
+import { Logger } from '../utils/logger'
 import type { AuditLog } from '../types/entities'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '../components/data-table/DataTable'
-import { SearchInput } from '../components/shared/SearchInput'
 
 export default function AuditLogScreen() {
   const [logs, setLogs] = useState<AuditLog[]>([])
@@ -30,7 +29,7 @@ export default function AuditLogScreen() {
         endDate: dateTo || undefined,
       })
       if (result.isSuccess) setLogs(result.data || [])
-    } catch { } finally { setLoading(false) }
+    } catch (err) { Logger.error('AuditLogScreen', 'Error al cargar auditoria', err) } finally { setLoading(false) }
   }, [entityFilter, actionFilter, dateFrom, dateTo])
 
   useEffect(() => { fetchLogs() }, [fetchLogs])

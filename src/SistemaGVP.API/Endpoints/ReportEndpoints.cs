@@ -72,8 +72,8 @@ public static class ReportEndpoints
             if (exportResult == null || !exportResult.IsSuccess)
                 return Results.Ok(new { isSuccess = false, data = (object?)null, message = "Error al exportar reporte.", errors = Array.Empty<string>() });
 
-            var contentType = format == "excel" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/pdf";
-            var fileName = $"reporte_{type}_{DateTime.Now:yyyyMMdd}.{(format == "excel" ? "xlsx" : "pdf")}";
+            var contentType = format == "excel" ? "text/csv; charset=utf-8" : "text/html; charset=utf-8";
+            var fileName = $"reporte_{type}_{DateTime.Now:yyyyMMdd}.{(format == "excel" ? "csv" : "html")}";
 
             return Results.File(exportResult.Data!, contentType, fileName);
         });

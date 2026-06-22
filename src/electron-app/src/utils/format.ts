@@ -1,5 +1,5 @@
 export function formatCurrency(amount: number, currency = 'Gs.'): string {
-  return `${currency} ${amount.toLocaleString('es-PY', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+  return `${currency} ${amount.toLocaleString('es-PY', { minimumFractionDigits: 0, maximumFractionDigits: 3 })}`
 }
 
 export function formatDate(date: string | Date): string {

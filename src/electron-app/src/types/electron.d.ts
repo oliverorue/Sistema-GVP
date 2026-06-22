@@ -17,6 +17,8 @@ export interface ElectronAPI {
   printTicket: (html: string) => Promise<{ success: boolean; message?: string }>
   getLicenseStatus: () => Promise<LicenseStatus>
   activateLicense: (licenseKey: string) => Promise<LicenseResult>
+  registerScanner: () => Promise<void>
+  onBarcode: (callback: (barcode: string) => void) => void
 }
 
 declare global {

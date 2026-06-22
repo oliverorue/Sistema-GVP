@@ -3,6 +3,7 @@ import { FileSpreadsheet, FileText, TrendingUp, Package, DollarSign, ClipboardLi
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { reportService } from '../services/reportService'
 import { formatCurrency } from '../utils/format'
+import { Logger } from '../utils/logger'
 
 const REPORT_TYPES = [
   { value: 'sales', label: 'Ventas por período', icon: TrendingUp },
@@ -41,7 +42,7 @@ export default function ReportsScreen() {
           break
       }
       if (result?.isSuccess) setData(result.data)
-    } catch { } finally { setLoading(false) }
+    } catch (err) { Logger.error('ReportsScreen', 'Error al cargar reporte', err) } finally { setLoading(false) }
   }
 
   const handleExport = async (format: 'excel' | 'pdf') => {
@@ -53,7 +54,7 @@ export default function ReportsScreen() {
       a.download = `reporte_${reportType}_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'pdf'}`
       a.click()
       window.URL.revokeObjectURL(url)
-    } catch { }
+    } catch (err) { Logger.error('ReportsScreen', 'Error al exportar', err) }
   }
 
   const renderSalesReport = () => {
@@ -66,21 +67,17 @@ export default function ReportsScreen() {
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="text-left text-xs font-medium text-slate-500 uppercase px-4 py-3">Día</th>
                 <th className="text-right text-xs font-medium text-slate-500 uppercase px-4 py-3">Ventas</th>
+                <th className="text-right text-xs font-medium text-slate-500 uppercase px-4 py-3">Items</th>
                 <th className="text-right text-xs font-medium text-slate-500 uppercase px-4 py-3">Total</th>
-                <th className="text-right text-xs font-medium text-slate-500 uppercase px-4 py-3">Efectivo</th>
-                <th className="text-right text-xs font-medium text-slate-500 uppercase px-4 py-3">Tarjeta</th>
-                <th className="text-right text-xs font-medium text-slate-500 uppercase px-4 py-3">Transferencia</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((row: any, i: number) => (
                 <tr key={i} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium">{row.date || row.day || '---'}</td>
-                  <td className="px-4 py-3 text-right">{row.count || row.totalSales || 0}</td>
-                  <td className="px-4 py-3 text-right font-medium">{formatCurrency(row.total || row.totalRevenue || 0)}</td>
-                  <td className="px-4 py-3 text-right">{formatCurrency(row.Cash || row.cash || 0)}</td>
-                  <td className="px-4 py-3 text-right">{formatCurrency(row.Card || row.card || 0)}</td>
-                  <td className="px-4 py-3 text-right">{formatCurrency(row.Transfer || row.transfer || 0)}</td>
+                  <td className="px-4 py-3 font-medium">{row.date ? new Date(row.date).toLocaleDateString('es-PY') : '---'}</td>
+                  <td className="px-4 py-3 text-right">{row.totalSales ?? 0}</td>
+                  <td className="px-4 py-3 text-right">{row.itemCount ?? 0}</td>
+                  <td className="px-4 py-3 text-right font-medium">{formatCurrency(row.totalAmount ?? 0)}</td>
                 </tr>
               ))}
             </tbody>
@@ -90,12 +87,10 @@ export default function ReportsScreen() {
           <div className="card">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={rows} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(v: string) => new Date(v).toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit' })} />
                 <YAxis />
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Bar dataKey="Cash" fill="#10b981" name="Efectivo" stackId="a" />
-                <Bar dataKey="Card" fill="#6366f1" name="Tarjeta" stackId="a" />
-                <Bar dataKey="Transfer" fill="#f59e0b" name="Transferencia" stackId="a" />
+                <Tooltip formatter={(value: number) => formatCurrency(value)} labelFormatter={(label: string) => new Date(label).toLocaleDateString('es-PY')} />
+                <Bar dataKey="totalAmount" fill="#6366f1" name="Total" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -126,7 +121,7 @@ export default function ReportsScreen() {
                 </td>
                 <td className="px-4 py-3 text-right font-mono text-slate-600">{row.minStock ?? 0}</td>
                 <td className="px-4 py-3 text-right font-mono text-red-600">
-                  {(row.currentStock ?? 0) - (row.minStock ?? 0)}
+                  {row.difference ?? ((row.currentStock ?? 0) - (row.minStock ?? 0))}
                 </td>
               </tr>
             ))}
@@ -137,11 +132,10 @@ export default function ReportsScreen() {
   }
 
   const renderProfitReport = () => {
-    const detail = Array.isArray(data?.detail ?? data?.details ?? data) ? (data?.detail ?? data?.details ?? data) : []
-    const totalCost = data?.totalCost ?? data?.cost ?? 0
-    const totalRevenue = data?.totalRevenue ?? data?.revenue ?? data?.totalSales ?? 0
-    const margin = data?.margin ?? data?.profit ?? (totalRevenue - totalCost)
-    const marginPercent = data?.marginPercent ?? data?.marginPercentage ?? (totalRevenue > 0 ? (margin / totalRevenue) * 100 : 0)
+    const totalCost = data?.totalCost ?? 0
+    const totalRevenue = data?.totalRevenue ?? 0
+    const profit = data?.profit ?? 0
+    const margin = data?.margin ?? 0
 
     return (
       <div className="space-y-6">
@@ -155,44 +149,18 @@ export default function ReportsScreen() {
             <p className="text-xl font-bold text-emerald-600">{formatCurrency(totalRevenue)}</p>
           </div>
           <div className="card">
-            <p className="text-sm text-slate-500">Margen</p>
-            <p className={`text-xl font-bold ${margin >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-              {formatCurrency(margin)}
+            <p className="text-sm text-slate-500">Ganancia</p>
+            <p className={`text-xl font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {formatCurrency(profit)}
             </p>
           </div>
           <div className="card">
-            <p className="text-sm text-slate-500">Porcentaje</p>
-            <p className={`text-xl font-bold ${marginPercent >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-              {marginPercent.toFixed(1)}%
+            <p className="text-sm text-slate-500">Margen</p>
+            <p className={`text-xl font-bold ${margin >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {margin.toFixed(1)}%
             </p>
           </div>
         </div>
-        {detail.length > 0 && (
-          <div className="card overflow-hidden p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left text-xs font-medium text-slate-500 uppercase px-4 py-3">Producto</th>
-                  <th className="text-right text-xs font-medium text-slate-500 uppercase px-4 py-3">Costo</th>
-                  <th className="text-right text-xs font-medium text-slate-500 uppercase px-4 py-3">Venta</th>
-                  <th className="text-right text-xs font-medium text-slate-500 uppercase px-4 py-3">Margen</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {detail.map((row: any, i: number) => (
-                  <tr key={i} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium">{row.productName || row.name || '---'}</td>
-                    <td className="px-4 py-3 text-right font-mono">{formatCurrency(row.cost || row.totalCost || 0)}</td>
-                    <td className="px-4 py-3 text-right font-mono">{formatCurrency(row.revenue || row.totalRevenue || 0)}</td>
-                    <td className={`px-4 py-3 text-right font-mono ${(row.margin ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {formatCurrency(row.margin ?? 0)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     )
   }
@@ -247,8 +215,6 @@ export default function ReportsScreen() {
       case 'inventory-value': return renderInventoryValueReport()
     }
   }
-
-  const currentIcon = REPORT_TYPES.find((r) => r.value === reportType)?.icon
 
   return (
     <div className="space-y-4">

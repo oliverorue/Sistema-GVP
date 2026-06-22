@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { categoryService } from '../services/categoryService'
+import { Logger } from '../utils/logger'
 import type { Category } from '../types/entities'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '../components/data-table/DataTable'
@@ -34,7 +35,7 @@ export default function CategoriesScreen() {
     try {
       const result = await categoryService.getAll()
       if (result.isSuccess && result.data) setCategories(result.data)
-    } catch { } finally {
+    } catch (err) { Logger.error('CategoriesScreen', 'Error al cargar categorias', err) } finally {
       setLoading(false)
     }
   }, [])
@@ -70,7 +71,8 @@ export default function CategoriesScreen() {
           fetchCategories()
         } else toast.error(result.message)
       }
-    } catch {
+    } catch (err) {
+      Logger.error('CategoriesScreen', 'Error al guardar categoria', err)
       toast.error('Error al guardar la categoría')
     }
   }
@@ -84,7 +86,8 @@ export default function CategoriesScreen() {
         setDeleteId(null)
         fetchCategories()
       } else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('CategoriesScreen', 'Error al eliminar categoria', err)
       toast.error('Error al eliminar la categoría')
     }
   }

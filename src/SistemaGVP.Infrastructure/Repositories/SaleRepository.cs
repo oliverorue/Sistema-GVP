@@ -25,6 +25,7 @@ public class SaleRepository : BaseRepository<Sale>, ISaleRepository
             .Include(s => s.User)
             .Include(s => s.Customer)
             .Include(s => s.SaleDetails)
+                .ThenInclude(d => d.Product)
             .Where(s => s.CompanyId == companyId
                      && s.CreatedAt >= from
                      && s.CreatedAt <= to)
@@ -38,6 +39,7 @@ public class SaleRepository : BaseRepository<Sale>, ISaleRepository
             .Include(s => s.User)
             .Include(s => s.Customer)
             .Include(s => s.SaleDetails)
+                .ThenInclude(d => d.Product)
             .FirstOrDefaultAsync(s => s.Id == saleId);
     }
 
@@ -53,6 +55,7 @@ public class SaleRepository : BaseRepository<Sale>, ISaleRepository
         var query = _dbSet
             .Include(s => s.Customer)
             .Include(s => s.SaleDetails)
+                .ThenInclude(d => d.Product)
             .Where(s => s.CompanyId == companyId);
 
         // Filtro por rango de fechas
@@ -85,6 +88,7 @@ public class SaleRepository : BaseRepository<Sale>, ISaleRepository
         return await _dbSet
             .Include(s => s.Customer)
             .Include(s => s.SaleDetails)
+                .ThenInclude(d => d.Product)
             .Where(s => s.CompanyId == companyId
                      && s.Status == Domain.Enums.SaleStatus.HeldSale)
             .OrderByDescending(s => s.CreatedAt)

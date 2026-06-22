@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { customerService } from '../services/customerService'
 import { formatCurrency } from '../utils/format'
+import { Logger } from '../utils/logger'
 import type { Customer } from '../types/entities'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '../components/data-table/DataTable'
@@ -42,7 +43,7 @@ export default function CustomersScreen() {
       const fn = search ? () => customerService.search(search) : () => customerService.getAll()
       const result = await fn()
       if (result.isSuccess && result.data) setCustomers(result.data)
-    } catch { } finally {
+    } catch (err) { Logger.error('CustomersScreen', 'Error al cargar clientes', err) } finally {
       setLoading(false)
     }
   }, [search])
@@ -85,7 +86,8 @@ export default function CustomersScreen() {
           fetchCustomers()
         } else toast.error(result.message)
       }
-    } catch {
+    } catch (err) {
+      Logger.error('CustomersScreen', 'Error al guardar cliente', err)
       toast.error('Error al guardar el cliente')
     }
   }
@@ -99,7 +101,8 @@ export default function CustomersScreen() {
         setDeleteId(null)
         fetchCustomers()
       } else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('CustomersScreen', 'Error al eliminar cliente', err)
       toast.error('Error al eliminar el cliente')
     }
   }

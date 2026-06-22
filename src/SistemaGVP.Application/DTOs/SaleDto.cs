@@ -38,6 +38,7 @@ public class SaleDetailDto
     public int ProductId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public string Barcode { get; set; } = string.Empty;
+    public string Unit { get; set; } = "pz";
     public decimal Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal Discount { get; set; }

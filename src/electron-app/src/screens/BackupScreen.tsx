@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Database, Download, Upload, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Database, Upload, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { backupService } from '../services/backupService'
 import { formatDateTime, formatFileSize } from '../utils/format'
+import { Logger } from '../utils/logger'
 import type { BackupInfo } from '../types/entities'
 import { DataTable } from '../components/data-table/DataTable'
-import { Modal, ConfirmDialog, FormField } from '../components/ui'
+import { Modal, ConfirmDialog } from '../components/ui'
 
 export default function BackupScreen() {
   const [backups, setBackups] = useState<BackupInfo[]>([])
@@ -20,7 +21,7 @@ export default function BackupScreen() {
       const result = await backupService.getAll()
       if (result.isSuccess) setBackups(result.data || [])
       else toast.error(result.message)
-    } catch { } finally { setLoading(false) }
+    } catch (err) { Logger.error('BackupScreen', 'Error al cargar backups', err) } finally { setLoading(false) }
   }
 
   useEffect(() => { fetchBackups() }, [])
@@ -32,7 +33,8 @@ export default function BackupScreen() {
       if (result.isSuccess) toast.success('Backup creado exitosamente')
       else toast.error(result.message)
       await fetchBackups()
-    } catch {
+    } catch (err) {
+      Logger.error('BackupScreen', 'Error al crear backup', err)
       toast.error('Error al crear el backup')
     } finally { setCreating(false) }
   }
@@ -45,7 +47,8 @@ export default function BackupScreen() {
         toast.success('Base de datos restaurada exitosamente')
         setRestoreFile(null)
       } else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('BackupScreen', 'Error al restaurar backup', err)
       toast.error('Error al restaurar el backup')
     }
   }
@@ -55,7 +58,8 @@ export default function BackupScreen() {
       const result = await backupService.getInfo(fileName)
       if (result.isSuccess && result.data) setVerifyInfo(result.data)
       else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('BackupScreen', 'Error al verificar backup', err)
       toast.error('Error al verificar el backup')
     }
   }

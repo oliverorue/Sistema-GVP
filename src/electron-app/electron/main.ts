@@ -1,6 +1,8 @@
 import { join } from 'path';
 import { appendFileSync, existsSync, mkdirSync } from 'fs';
 import { BackendManager } from './backend';
+import { setupPrinter } from './printer';
+import { setupScanner } from './scanner';
 import { setupUpdater } from './updater';
 import { setupLicenseIPC } from './license';
 
@@ -154,6 +156,22 @@ app.whenReady().then(async () => {
     createWindow();
     createTray();
     startupLog('Window and tray created');
+
+    try {
+      setupPrinter();
+      startupLog('Printer IPC setup OK');
+    } catch (err: any) {
+      startupLog(`Printer IPC setup FAILED: ${err?.message || err}`);
+      console.error('Failed to setup printer IPC:', err?.message || err);
+    }
+
+    try {
+      setupScanner();
+      startupLog('Scanner IPC setup OK');
+    } catch (err: any) {
+      startupLog(`Scanner IPC setup FAILED: ${err?.message || err}`);
+      console.error('Failed to setup scanner IPC:', err?.message || err);
+    }
 
     try {
       setupUpdater(mainWindow);

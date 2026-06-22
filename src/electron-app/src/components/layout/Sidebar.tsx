@@ -31,15 +31,15 @@ export default function Sidebar() {
   const isAdmin = useAuthStore((s) => s.isAdmin)
 
   return (
-    <aside className={`fixed left-0 top-12 bottom-6 bg-white border-r border-slate-200 transition-all duration-200 z-30 ${
+    <aside className={`fixed left-0 top-14 bottom-6 bg-gradient-to-b from-white to-slate-50/50 border-r border-slate-200/80 transition-all duration-300 z-30 shadow-sm ${
       sidebarOpen ? 'w-64' : 'w-16'
     }`}>
-      <nav className="h-full overflow-y-auto p-2 space-y-1">
+      <nav className="h-full overflow-y-auto p-2 space-y-0.5 scrollbar-thin">
         {menuItems.map((item, index) => {
           if (item.divider) {
             if (item.adminOnly && !isAdmin) return null
             return (
-              <div key={index} className={`border-t border-slate-200 my-2 ${sidebarOpen ? '' : 'mx-2'}`} />
+              <div key={index} className={`border-t border-slate-200/60 my-3 ${sidebarOpen ? 'mx-3' : 'mx-2'}`} />
             )
           }
           if (item.adminOnly && !isAdmin) return null
@@ -50,15 +50,15 @@ export default function Sidebar() {
               key={item.path}
               to={item.path!}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-indigo-50 text-indigo-700 font-medium'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
-                } ${!sidebarOpen ? 'justify-center' : ''}`
+                    ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 text-indigo-700 shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-800'
+                } ${!sidebarOpen ? 'justify-center px-2' : ''}`
               }
             >
-              <Icon className="w-5 h-5 shrink-0" />
-              {sidebarOpen && <span>{item.label}</span>}
+              <Icon className={`w-5 h-5 shrink-0 ${!sidebarOpen ? 'scale-110' : ''}`} />
+              {sidebarOpen && <span className="truncate">{item.label}</span>}
             </NavLink>
           )
         })}
@@ -66,9 +66,9 @@ export default function Sidebar() {
 
       <button
         onClick={toggleSidebar}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 shadow-sm"
+        className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border border-slate-200/80 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 shadow-md hover:shadow-lg transition-all"
       >
-        <ChevronLeft className={`w-4 h-4 transition-transform ${!sidebarOpen ? 'rotate-180' : ''}`} />
+        <ChevronLeft className={`w-3.5 h-3.5 transition-transform duration-300 ${!sidebarOpen ? 'rotate-180' : ''}`} />
       </button>
     </aside>
   )

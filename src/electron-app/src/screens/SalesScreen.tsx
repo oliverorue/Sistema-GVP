@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { Search, Plus, Minus, Trash2, PauseCircle, DollarSign, X, User, Play, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
@@ -12,6 +12,7 @@ import { Modal, ConfirmDialog } from '../components/ui'
 import { SearchInput } from '../components/shared/SearchInput'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { usePrintTicket } from '../hooks/usePrintTicket'
+import { Logger } from '../utils/logger'
 
 interface SearchResult {
   id: number
@@ -41,13 +42,33 @@ export default function SalesScreen() {
   const [creditWarning, setCreditWarning] = useState<{ balance: number; limit: number } | null>(null)
   const [stayAfterSale, setStayAfterSale] = useState(true)
 
+  useEffect(() => {
+    const api = window.electronAPI
+    if (!api) return
+    api.registerScanner()
+    api.onBarcode(async (barcode: string) => {
+      Logger.info('SalesScreen', 'Barcode scanned', { barcode })
+      try {
+        const result = await productService.search(barcode)
+        if (result.isSuccess && result.data?.items?.length === 1) {
+          const product = result.data.items[0]
+          addToCart(product)
+          toast.success(`${product.name} escaneado`)
+        }
+      } catch (err) {
+        Logger.error('SalesScreen', 'Error al procesar codigo de barras', err)
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleSearch = useCallback(async (q: string) => {
     setSearchQuery(q)
     if (q.length < 2) { setSearchResults([]); return }
     try {
       const result = await productService.search(q)
       if (result.isSuccess && result.data?.items) setSearchResults(result.data.items)
-    } catch { }
+    } catch (err) { Logger.error('SalesScreen', 'Error en busqueda', err) }
   }, [])
 
   const addToCart = useCallback((product: SearchResult) => {
@@ -75,6 +96,7 @@ export default function SalesScreen() {
     }
 
     setLoading(true)
+    Logger.info('SalesScreen', 'Procesando venta', { items: cart.items.length, total: cart.total() })
     try {
       const result = await saleService.create({
         customerId: cart.customerId,
@@ -91,21 +113,25 @@ export default function SalesScreen() {
       })
 
       if (result.isSuccess && result.data) {
+        Logger.info('SalesScreen', 'Venta completada', { saleId: result.data.id, invoiceNumber: (result.data as any).invoiceNumber })
         toast.success(`Venta completada — ${formatCurrency(cart.total())}`)
         const saleId = result.data.id
         cart.clearCart()
         setShowPayment(false)
         printSaleTicket(saleId)
         if (!stayAfterSale) navigate('/sales-history')
+      } else {
+        Logger.warn('SalesScreen', 'Venta fallida', { message: result.message })
       }
-    } catch {
+    } catch (err) {
+      Logger.error('SalesScreen', 'Error al procesar venta', err)
       toast.error('Error al procesar la venta')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleHold = async () => {
+  const handleHold = useCallback(async () => {
     if (cart.items.length === 0) return
     try {
       const result = await saleService.holdSale({
@@ -125,10 +151,11 @@ export default function SalesScreen() {
         toast.success('Venta pausada')
         cart.clearCart()
       } else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('SalesScreen', 'Error al pausar venta', err)
       toast.error('Error al pausar la venta')
     }
-  }
+  }, [cart])
 
   const openHeldSales = async () => {
     setShowHeldSales(true)
@@ -136,7 +163,7 @@ export default function SalesScreen() {
     try {
       const result = await saleService.getHeldSales()
       if (result.isSuccess && result.data) setHeldSales(result.data)
-    } catch { } finally { setLoadingHeld(false) }
+    } catch (err) { Logger.error('SalesScreen', 'Error al cargar ventas en espera', err) } finally { setLoadingHeld(false) }
   }
 
   const resumeHeldSale = async (id: number) => {
@@ -161,7 +188,8 @@ export default function SalesScreen() {
         toast.success('Venta reanudada')
         setShowHeldSales(false)
       } else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('SalesScreen', 'Error al reanudar venta', err)
       toast.error('Error al reanudar la venta')
     }
   }
@@ -173,7 +201,7 @@ export default function SalesScreen() {
     try {
       const result = await customerService.getAll()
       if (result.isSuccess && result.data) setCustomerResults(result.data)
-    } catch { }
+    } catch (err) { Logger.error('SalesScreen', 'Error al cargar clientes', err) }
   }
 
   const handleCustomerSearch = useCallback(async (q: string) => {
@@ -182,13 +210,13 @@ export default function SalesScreen() {
       try {
         const result = await customerService.getAll()
         if (result.isSuccess && result.data) setCustomerResults(result.data)
-      } catch { }
+      } catch (err) { Logger.error('SalesScreen', 'Error al cargar clientes', err) }
       return
     }
     try {
       const result = await customerService.search(q)
       if (result.isSuccess && result.data) setCustomerResults(result.data)
-    } catch { }
+    } catch (err) { Logger.error('SalesScreen', 'Error al buscar clientes', err) }
   }, [])
 
   const selectCustomer = (customer: Customer) => {
@@ -210,7 +238,7 @@ export default function SalesScreen() {
     F5: () => { if (cart.items.length > 0) setShowPayment(true) },
     F8: () => handleHold(),
     Escape: () => { setShowPayment(false); setShowHeldSales(false); setShowCustomerSearch(false); setCreditWarning(null) },
-  }), [cart.items.length])
+  }), [cart.items.length, handleHold])
 
   useKeyboardShortcuts(shortcuts)
 
@@ -394,16 +422,24 @@ export default function SalesScreen() {
               {cart.paymentMethod === 'Cash' && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Efectivo recibido</label>
-                  <input
-                    type="number"
-                    value={cart.cashAmount}
-                    onChange={(e) => cart.setCashAmount(Number(e.target.value))}
-                    className="input-field"
-                    placeholder="0"
-                  />
-                  {cart.cashAmount >= cart.total() && (
-                    <p className="text-sm text-emerald-600 mt-1">
-                      Cambio: {formatCurrency(cart.cashAmount - cart.total())}
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">Gs.</span>
+                    <input
+                      type="number"
+                      value={cart.cashAmount === 0 ? '' : cart.cashAmount}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        cart.setCashAmount(val === '' ? 0 : Number(val))
+                      }}
+                      className="input-field pl-10 text-lg font-semibold"
+                      placeholder="0"
+                      min="0"
+                      step="1000"
+                    />
+                  </div>
+                  {cart.cashAmount >= cart.total() && cart.cashAmount > 0 && (
+                    <p className="text-sm text-emerald-600 mt-1 flex items-center gap-1">
+                      <span className="text-lg">↩</span> Cambio: {formatCurrency(cart.cashAmount - cart.total())}
                     </p>
                   )}
                 </div>

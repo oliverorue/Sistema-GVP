@@ -45,7 +45,7 @@ public static class SaleEndpoints
 
         group.MapGet("/{id:int}", async (int id, ISaleService service, ICurrentUserService currentUser) =>
         {
-            var result = await service.GetSaleDetailAsync(id, currentUser.CompanyId);
+            var result = await service.GetByIdAsync(id);
             return result.IsSuccess
                 ? Results.Ok(new { isSuccess = true, data = result.Data, message = result.Message, errors = result.Errors })
                 : Results.Ok(new { isSuccess = false, data = (object?)null, message = result.Message, errors = result.Errors });
@@ -61,6 +61,8 @@ public static class SaleEndpoints
 
         group.MapPost("/hold", async ([FromBody] CreateSaleDto dto, ISaleService service, ICurrentUserService currentUser) =>
         {
+            dto.CompanyId = currentUser.CompanyId;
+            dto.UserId = currentUser.UserId;
             var result = await service.HoldSaleAsync(dto, currentUser.CompanyId, currentUser.UserId);
             return result.IsSuccess
                 ? Results.Ok(new { isSuccess = true, data = result.Data, message = result.Message, errors = result.Errors })

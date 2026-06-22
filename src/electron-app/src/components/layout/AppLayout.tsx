@@ -11,14 +11,16 @@ import { settingsService } from '../../services/settingsService'
 export default function AppLayout() {
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
   const setTaxRate = useCartStore((s) => s.setTaxRate)
+  const setIvaIncluido = useCartStore((s) => s.setIvaIncluido)
 
   useEffect(() => {
     settingsService.getCompany().then((result) => {
-      if (result.isSuccess && result.data?.taxRate) {
+      if (result.isSuccess && result.data) {
         setTaxRate(result.data.taxRate)
+        setIvaIncluido(result.data.ivaIncluido)
       }
     })
-  }, [setTaxRate])
+  }, [setTaxRate, setIvaIncluido])
 
   return (
     <div className="h-screen flex flex-col">

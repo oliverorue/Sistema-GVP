@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Save } from 'lucide-react'
 import { settingsService } from '../services/settingsService'
 import { Company } from '../types/entities'
+import { Logger } from '../utils/logger'
 
 export default function SettingsScreen() {
   const [company, setCompany] = useState<Company | null>(null)
@@ -14,7 +15,7 @@ export default function SettingsScreen() {
         const result = await settingsService.getCompany()
         if (result.isSuccess) setCompany(result.data)
       } catch (err) {
-        console.error(err)
+        Logger.error('SettingsScreen', 'Error al cargar configuracion', err)
       } finally {
         setLoading(false)
       }
@@ -28,7 +29,7 @@ export default function SettingsScreen() {
     try {
       await settingsService.updateCompany(company)
     } catch (err) {
-      console.error(err)
+      Logger.error('SettingsScreen', 'Error al guardar configuracion', err)
     } finally {
       setSaving(false)
     }
@@ -74,6 +75,17 @@ export default function SettingsScreen() {
               <label className="block text-sm font-medium text-slate-700 mb-1">Stock Minimo</label>
               <input type="number" value={company?.lowStockThreshold || 10} onChange={(e) => setCompany((prev) => prev ? { ...prev, lowStockThreshold: Number(e.target.value) } : null)} className="input-field" />
             </div>
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-slate-700 mb-2">IVA en precios</label>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" checked={company?.ivaIncluido ?? true}
+                onChange={(e) => setCompany(prev => prev ? {...prev, ivaIncluido: e.target.checked} : null)}
+                className="sr-only peer" />
+              <div className="w-11 h-6 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+              <span className="ml-3 text-sm text-slate-700">IVA incluido en precios</span>
+            </label>
+            <p className="text-xs text-slate-400 mt-1">Si esta activo, los precios en gondola ya incluyen el IVA (10%)</p>
           </div>
           <button onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-2">
             <Save className="w-4 h-4" /> {saving ? 'Guardando...' : 'Guardar Cambios'}

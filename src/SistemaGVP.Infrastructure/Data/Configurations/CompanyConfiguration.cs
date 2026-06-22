@@ -36,6 +36,9 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
         builder.Property(e => e.TaxRate)
             .HasColumnType("decimal(18,2)");
 
+        builder.Property(e => e.IvaIncluido)
+            .HasDefaultValue(true);
+
         builder.Property(e => e.Currency)
             .HasMaxLength(10)
             .HasDefaultValue("Gs.");

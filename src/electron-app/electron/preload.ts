@@ -9,4 +9,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   printTicket: (html: string) => ipcRenderer.invoke('printer:print', html),
   getLicenseStatus: () => ipcRenderer.invoke('license:status'),
   activateLicense: (licenseKey: string) => ipcRenderer.invoke('license:activate', licenseKey),
+  registerScanner: () => ipcRenderer.invoke('scanner:register'),
+  onBarcode: (callback: (barcode: string) => void) => {
+    ipcRenderer.on('scanner:barcode', (_event, barcode) => callback(barcode));
+  },
 });

@@ -2,11 +2,15 @@ import type { Sale, Company } from '../../types/entities'
 import { formatCurrency } from '../../utils/format'
 
 export function renderTicketHTML(sale: Sale, company: Company): string {
+  const baseAmount = company.ivaIncluido
+    ? sale.subtotal / (1 + company.taxRate)
+    : sale.subtotal
+
   const itemsHtml = sale.items
     .map(
       (item) => `
     <tr>
-      <td class="qty">${item.quantity} x ${item.productName}</td>
+      <td class="qty">${item.quantity} ${item.unit || ''} x ${item.productName}</td>
       <td class="amount">${formatCurrency(item.subtotal)}</td>
     </tr>`
     )
@@ -77,8 +81,8 @@ export function renderTicketHTML(sale: Sale, company: Company): string {
   <div class="line"></div>
 
   <table class="totals">
-    <tr><td class="label">Subtotal</td><td class="value">${formatCurrency(sale.subtotal)}</td></tr>
-    <tr><td class="label">IVA (${(company.taxRate * 100).toFixed(0)}%)</td><td class="value">${formatCurrency(sale.tax)}</td></tr>
+    ${company.ivaIncluido ? `<tr><td class="label">Base imponible</td><td class="value">${formatCurrency(baseAmount)}</td></tr>` : ''}
+    <tr><td class="label">IVA ${(company.taxRate * 100).toFixed(0)}%${company.ivaIncluido ? ' (incluido)' : ''}</td><td class="value">${formatCurrency(sale.tax)}</td></tr>
     ${sale.discount > 0 ? `<tr><td class="label">Descuento</td><td class="value">-${formatCurrency(sale.discount)}</td></tr>` : ''}
     <tr class="grand-total"><td class="label"><strong>TOTAL</strong></td><td class="value"><strong>${formatCurrency(sale.total)}</strong></td></tr>
   </table>

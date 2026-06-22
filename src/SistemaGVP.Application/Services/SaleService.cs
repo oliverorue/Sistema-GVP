@@ -18,6 +18,7 @@ public class SaleService : ISaleService
     private readonly IInventoryMovementRepository _movementRepository;
     private readonly IInvoiceCounterRepository _invoiceCounterRepository;
     private readonly IRepository<Company> _companyRepository;
+    private readonly IRepository<Customer> _customerRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IValidator<CreateSaleDto> _saleValidator;
@@ -29,6 +30,7 @@ public class SaleService : ISaleService
         IInventoryMovementRepository movementRepository,
         IInvoiceCounterRepository invoiceCounterRepository,
         IRepository<Company> companyRepository,
+        IRepository<Customer> customerRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IValidator<CreateSaleDto> saleValidator,
@@ -39,6 +41,7 @@ public class SaleService : ISaleService
         _movementRepository = movementRepository;
         _invoiceCounterRepository = invoiceCounterRepository;
         _companyRepository = companyRepository;
+        _customerRepository = customerRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _saleValidator = saleValidator;
@@ -154,7 +157,14 @@ public class SaleService : ISaleService
                 SaleTotal = sale.Total
             };
 
-            _logger.LogInformation("Venta en espera #{Id} reanudada desde BD", heldSaleId);
+            // Marcar la venta original como cancelada para que no aparezca
+            // como pendiente ni se duplique en reportes
+            sale.Status = SaleStatus.Cancelled;
+            sale.Notes = $"Reanudada y convertida en una nueva venta — {DateTime.UtcNow:yyyy-MM-dd HH:mm}";
+            _saleRepository.Update(sale);
+            await _unitOfWork.CompleteAsync();
+
+            _logger.LogInformation("Venta en espera #{Id} reanudada y marcada como cancelada en BD", heldSaleId);
             return ServiceResult<HeldSaleDto?>.Success(heldSaleDto);
         }
         catch (Exception ex)
@@ -410,6 +420,7 @@ public class SaleService : ISaleService
                         ProductId = product.Id,
                         ProductName = product.Name,     // Snapshot
                         Barcode = product.Barcode,       // Snapshot
+                        Unit = product.Unit,             // Snapshot (kg, m, litro, pz...)
                         Quantity = itemDto.Quantity,
                         UnitPrice = itemDto.UnitPrice,
                         Cost = product.Cost,             // Snapshot del costo
@@ -441,8 +452,35 @@ public class SaleService : ISaleService
 
                 // 4. Calcular impuestos usando la tasa de IVA de la compañía
                 var totalDiscount = dto.Items.Sum(i => i.Discount);
-                var tax = (subtotal - totalDiscount) * taxRate;
-                var total = subtotal - totalDiscount + tax;
+                decimal tax;
+                decimal total;
+
+                if (company?.IvaIncluido == true)
+                {
+                    // IVA incluido: los precios ya contienen IVA
+                    // IVA = total_con_iva / (1 + taxRate) * taxRate
+                    var baseAmount = (subtotal - totalDiscount) / (1 + taxRate);
+                    tax = (subtotal - totalDiscount) - baseAmount;
+                    total = subtotal - totalDiscount;
+                }
+                else
+                {
+                    // IVA discriminado: se suma al subtotal
+                    tax = (subtotal - totalDiscount) * taxRate;
+                    total = subtotal - totalDiscount + tax;
+                }
+
+                // 4.1 Validar límite de crédito del cliente
+                if (dto.CustomerId.HasValue)
+                {
+                    var customer = await _customerRepository.GetByIdAsync(dto.CustomerId.Value);
+                    if (customer != null && customer.CreditLimit > 0
+                        && (total + customer.Balance > customer.CreditLimit))
+                    {
+                        return ServiceResult<SaleDto>.Failure(
+                            $"El cliente '{customer.Name}' supera su límite de crédito. Saldo: {customer.Balance:N0}, Límite: {customer.CreditLimit:N0}");
+                    }
+                }
 
                 // 5. Calcular cambio si es efectivo
                 decimal changeAmount = 0;

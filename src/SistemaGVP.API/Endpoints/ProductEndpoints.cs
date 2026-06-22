@@ -27,17 +27,19 @@ public static class ProductEndpoints
                 : Results.Ok(new { isSuccess = false, data = (object?)null, message = result.Message, errors = result.Errors });
         });
 
-        group.MapPost("/", async ([FromBody] ProductDto dto, IProductService service) =>
+        group.MapPost("/", async ([FromBody] ProductDto dto, IProductService service, ICurrentUserService currentUser) =>
         {
+            dto.CompanyId = currentUser.CompanyId;
             var result = await service.CreateAsync(dto);
             return result.IsSuccess
                 ? Results.Ok(new { isSuccess = true, data = result.Data, message = result.Message, errors = result.Errors })
                 : Results.Ok(new { isSuccess = false, data = (object?)null, message = result.Message, errors = result.Errors });
         }).RequireAuthorization("Admin");
 
-        group.MapPut("/{id:int}", async (int id, [FromBody] ProductDto dto, IProductService service) =>
+        group.MapPut("/{id:int}", async (int id, [FromBody] ProductDto dto, IProductService service, ICurrentUserService currentUser) =>
         {
             dto.Id = id;
+            dto.CompanyId = currentUser.CompanyId;
             var result = await service.UpdateAsync(dto);
             return result.IsSuccess
                 ? Results.Ok(new { isSuccess = true, data = result.Data, message = result.Message, errors = result.Errors })

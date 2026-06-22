@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { productService } from '../services/productService'
 import { categoryService } from '../services/categoryService'
 import { formatCurrency } from '../utils/format'
+import { Logger } from '../utils/logger'
 import type { Product, Category } from '../types/entities'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '../components/data-table/DataTable'
@@ -59,7 +60,7 @@ export default function ProductsScreen() {
         setProducts(result.data.items)
         setTotalPages(result.data.totalPages)
       }
-    } catch { } finally {
+    } catch (err) { Logger.error('ProductsScreen', 'Error al cargar productos', err) } finally {
       setLoading(false)
     }
   }, [page, search])
@@ -114,7 +115,8 @@ export default function ProductsScreen() {
           toast.error(result.message)
         }
       }
-    } catch {
+    } catch (err) {
+      Logger.error('ProductsScreen', 'Error al guardar producto', err)
       toast.error('Error al guardar el producto')
     }
   }
@@ -130,7 +132,8 @@ export default function ProductsScreen() {
       } else {
         toast.error(result.message)
       }
-    } catch {
+    } catch (err) {
+      Logger.error('ProductsScreen', 'Error al eliminar producto', err)
       toast.error('Error al eliminar el producto')
     }
   }

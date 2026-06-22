@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { authService } from '../services/authService'
 import { User } from '../types/entities'
-import { LogIn } from 'lucide-react'
+import { Logger } from '../utils/logger'
 
 export default function LoginScreen() {
   const navigate = useNavigate()
@@ -19,15 +19,19 @@ export default function LoginScreen() {
     setError('')
     setLoading(true)
 
+    Logger.info('LoginScreen', 'Intento de inicio de sesión', { username, companyId })
+
     try {
       const result = await authService.login({ username, password, companyId })
 
       if (!result.isSuccess) {
         setError(result.message)
+        Logger.warn('LoginScreen', 'Login fallido', { message: result.message })
         return
       }
 
       const data = result.data!
+      Logger.info('LoginScreen', 'Login exitoso', { user: data.user.fullName, role: data.user.role })
       const user: User = {
         id: data.user.id,
         username: data.user.username,
@@ -54,14 +58,16 @@ export default function LoginScreen() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-slate-100">
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8 w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-indigo-900/20 border border-white/10 p-8 w-full max-w-md animate-scaleIn">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <LogIn className="w-8 h-8 text-indigo-600" />
+          <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/30">
+            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Sistema GVP</h1>
-          <p className="text-sm text-slate-500 mt-1">Punto de Venta</p>
+          <p className="text-sm text-slate-500 mt-1">Punto de Venta — Iniciar Sesión</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -119,7 +125,7 @@ export default function LoginScreen() {
           </button>
         </form>
 
-        <p className="text-center text-xs text-slate-400 mt-6">v2.0.0</p>
+        <p className="text-center text-xs text-slate-400 mt-6">© 2026 Sistema GVP v2.0</p>
       </div>
     </div>
   )

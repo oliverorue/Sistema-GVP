@@ -1,5 +1,6 @@
 import { useAuthStore } from '../../stores/authStore'
 import { useState, useEffect } from 'react'
+import { Logger } from '../../utils/logger'
 
 export default function StatusBar() {
   const user = useAuthStore((s) => s.user)
@@ -14,7 +15,8 @@ export default function StatusBar() {
         } else {
           setBackendStatus('disconnected')
         }
-      } catch {
+      } catch (err) {
+        Logger.error('StatusBar', 'Backend health check failed', err)
         setBackendStatus('disconnected')
       }
     }

@@ -10,6 +10,7 @@ public class SaleDetail : BaseEntity
     public int ProductId { get; set; }
     public string ProductName { get; set; } = string.Empty;  // Snapshot
     public string Barcode { get; set; } = string.Empty;       // Snapshot
+    public string Unit { get; set; } = "pz";                  // Snapshot (kg, m, litro, pz...)
     public decimal Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal Cost { get; set; }           // Snapshot del costo (para calcular margen histórico)

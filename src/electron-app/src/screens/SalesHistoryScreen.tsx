@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Search, Filter, Ban, Printer } from 'lucide-react'
+import { Filter, Ban, Printer } from 'lucide-react'
 import { toast } from 'sonner'
 import { saleService } from '../services/saleService'
 import { formatDateTime, formatCurrency } from '../utils/format'
+import { Logger } from '../utils/logger'
 import { useAuth } from '../hooks/useAuth'
 import type { SaleHistory } from '../types/entities'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '../components/data-table/DataTable'
-import { Modal, ConfirmDialog, FormField } from '../components/ui'
+import { Modal } from '../components/ui'
 import { SearchInput } from '../components/shared/SearchInput'
 import { usePrintTicket } from '../hooks/usePrintTicket'
 
@@ -25,8 +26,8 @@ export default function SalesHistoryScreen() {
     setLoading(true)
     try {
       const result = await saleService.getHistory({ page, searchTerm: search })
-      if (result.isSuccess && result.data) setSales(result.data as any)
-    } catch { } finally { setLoading(false) }
+      if (result.isSuccess && result.data) setSales((result.data as any).items ?? [])
+    } catch (err) { Logger.error('SalesHistoryScreen', 'Error al cargar historial', err) } finally { setLoading(false) }
   }, [page, search])
 
   useEffect(() => { fetchSales() }, [fetchSales])
@@ -44,7 +45,8 @@ export default function SalesHistoryScreen() {
         setVoidReason('')
         fetchSales()
       } else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('SalesHistoryScreen', 'Error al anular venta', err)
       toast.error('Error al anular la venta')
     }
   }

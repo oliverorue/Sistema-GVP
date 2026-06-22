@@ -1,5 +1,4 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useAuthStore } from './stores/authStore'
 import LoginScreen from './screens/LoginScreen'
 import DashboardScreen from './screens/DashboardScreen'
 import SalesScreen from './screens/SalesScreen'

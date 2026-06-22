@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { settingsService } from '../services/settingsService'
 import { saleService } from '../services/saleService'
 import { renderTicketHTML } from '../components/shared/TicketTemplate'
-import type { Sale } from '../types/entities'
+import { Logger } from '../utils/logger'
 
 export function usePrintTicket() {
   const printSaleTicket = useCallback(async (saleId: number) => {
@@ -21,7 +21,7 @@ export function usePrintTicket() {
       const sale = saleResult.data
       const company = companyResult.isSuccess && companyResult.data
         ? companyResult.data
-        : { name: 'Mi Empresa', taxId: '', address: '', phone: '', email: '', taxRate: 0.10, currency: 'Gs.', lowStockThreshold: 10, isActive: true, createdAt: '' }
+        : { name: 'Mi Empresa', taxId: '', address: '', phone: '', email: '', taxRate: 0.10, ivaIncluido: true, currency: 'Gs.', lowStockThreshold: 10, isActive: true, createdAt: '' }
 
       const html = renderTicketHTML(sale, company as any)
 
@@ -33,10 +33,12 @@ export function usePrintTicket() {
         if (w) {
           w.document.write(html)
           w.document.close()
+          w.onafterprint = () => w.close()
           w.print()
         }
       }
-    } catch {
+    } catch (err) {
+      Logger.error('usePrintTicket', 'Error al imprimir ticket', err)
       toast.error('Error al imprimir el ticket')
     }
   }, [])

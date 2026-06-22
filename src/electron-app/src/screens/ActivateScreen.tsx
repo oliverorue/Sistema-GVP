@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ShieldCheck, ShieldAlert } from 'lucide-react'
+import { Logger } from '../utils/logger'
 
 export default function ActivateScreen() {
   const navigate = useNavigate()
@@ -28,7 +29,8 @@ export default function ActivateScreen() {
       } else {
         toast.error('El sistema de licencias solo está disponible en la aplicación de escritorio')
       }
-    } catch {
+    } catch (err) {
+      Logger.error('ActivateScreen', 'Error al activar licencia', err)
       toast.error('Error al activar la licencia')
     } finally {
       setActivating(false)

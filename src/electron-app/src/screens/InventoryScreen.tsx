@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { inventoryService } from '../services/inventoryService'
 import { productService } from '../services/productService'
 import { formatDateTime } from '../utils/format'
+import { Logger } from '../utils/logger'
 import { MOVEMENT_TYPES } from '../utils/constants'
 import type { InventoryMovement, Product } from '../types/entities'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -38,7 +39,7 @@ export default function InventoryScreen() {
 
   const form = useForm<MovementFormData>({
     resolver: zodResolver(movementSchema),
-    defaultValues: { productId: 0, type: 'Entry', quantity: 1, reason: '', notes: '' },
+    defaultValues: { productId: 0, type: 'IN', quantity: 1, reason: '', notes: '' },
   })
 
   const fetchMovements = useCallback(async () => {
@@ -53,7 +54,7 @@ export default function InventoryScreen() {
         if (filterDateTo) filtered = filtered.filter((m) => new Date(m.createdAt) <= new Date(filterDateTo + 'T23:59:59'))
         setMovements(filtered)
       }
-    } catch { } finally { setLoading(false) }
+    } catch (err) { Logger.error('InventoryScreen', 'Error al cargar movimientos', err) } finally { setLoading(false) }
   }, [filterType, filterProduct, filterDateFrom, filterDateTo])
 
   useEffect(() => { fetchMovements() }, [fetchMovements])
@@ -66,7 +67,7 @@ export default function InventoryScreen() {
   }, [productSearch])
 
   const openCreateModal = () => {
-    form.reset({ productId: 0, type: 'Entry', quantity: 1, reason: '', notes: '' })
+    form.reset({ productId: 0, type: 'IN', quantity: 1, reason: '', notes: '' })
     setProductSearch('')
     setProductResults([])
     setShowModal(true)
@@ -79,7 +80,7 @@ export default function InventoryScreen() {
   }
 
   const onSubmit = async (data: MovementFormData) => {
-    const quantity = data.type === 'Exit' ? Math.abs(data.quantity) * -1 : Math.abs(data.quantity)
+    const quantity = data.type === 'OUT' ? Math.abs(data.quantity) * -1 : Math.abs(data.quantity)
     try {
       const result = await inventoryService.createMovement({ ...data, quantity })
       if (result.isSuccess) {
@@ -87,7 +88,8 @@ export default function InventoryScreen() {
         setShowModal(false)
         fetchMovements()
       } else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('InventoryScreen', 'Error al crear movimiento', err)
       toast.error('Error al crear el movimiento')
     }
   }
@@ -99,8 +101,8 @@ export default function InventoryScreen() {
       header: 'Tipo',
       accessorKey: 'type',
       cell: ({ row }) => (
-        <span className={`badge ${row.original.type === 'Entry' ? 'badge-success' : row.original.type === 'Exit' ? 'badge-warning' : 'badge-info'}`}>
-          {row.original.type === 'Entry' ? 'Entrada' : row.original.type === 'Exit' ? 'Salida' : 'Ajuste'}
+        <span className={`badge ${row.original.type === 'IN' ? 'badge-success' : row.original.type === 'OUT' ? 'badge-warning' : 'badge-info'}`}>
+          {row.original.type === 'IN' ? 'Entrada' : row.original.type === 'OUT' ? 'Salida' : 'Ajuste'}
         </span>
       ),
     },

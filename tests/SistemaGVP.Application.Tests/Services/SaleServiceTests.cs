@@ -21,6 +21,7 @@ public class SaleServiceTests
     private readonly Mock<IInventoryMovementRepository> _movementRepoMock;
     private readonly Mock<IInvoiceCounterRepository> _invoiceCounterRepoMock;
     private readonly Mock<IRepository<Company>> _companyRepoMock;
+    private readonly Mock<IRepository<Customer>> _customerRepoMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IValidator<CreateSaleDto>> _saleValidatorMock;
@@ -34,6 +35,7 @@ public class SaleServiceTests
         _movementRepoMock = new Mock<IInventoryMovementRepository>();
         _invoiceCounterRepoMock = new Mock<IInvoiceCounterRepository>();
         _companyRepoMock = new Mock<IRepository<Company>>();
+        _customerRepoMock = new Mock<IRepository<Customer>>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _mapperMock = new Mock<IMapper>();
         _saleValidatorMock = new Mock<IValidator<CreateSaleDto>>();
@@ -45,6 +47,7 @@ public class SaleServiceTests
             _movementRepoMock.Object,
             _invoiceCounterRepoMock.Object,
             _companyRepoMock.Object,
+            _customerRepoMock.Object,
             _unitOfWorkMock.Object,
             _mapperMock.Object,
             _saleValidatorMock.Object,

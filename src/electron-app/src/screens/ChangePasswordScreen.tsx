@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { authService } from '../services/authService'
 import { useAuthStore } from '../stores/authStore'
+import { Logger } from '../utils/logger'
 
 const changePasswordSchema = z
   .object({
@@ -41,7 +42,8 @@ export default function ChangePasswordScreen() {
       } else {
         toast.error(result.message)
       }
-    } catch {
+    } catch (err) {
+      Logger.error('ChangePasswordScreen', 'Error al cambiar password', err)
       toast.error('Error al cambiar la contraseña')
     } finally {
       setLoading(false)

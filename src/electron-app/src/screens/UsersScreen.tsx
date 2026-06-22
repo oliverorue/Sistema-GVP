@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { userService } from '../services/userService'
 import { USER_ROLES } from '../utils/constants'
+import { Logger } from '../utils/logger'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '../components/data-table/DataTable'
 import { Modal, ConfirmDialog, FormField } from '../components/ui'
@@ -48,7 +49,7 @@ export default function UsersScreen() {
     try {
       const result = await userService.getAll()
       if (result.isSuccess && result.data) setUsers(result.data.items || [])
-    } catch { } finally {
+    } catch (err) { Logger.error('UsersScreen', 'Error al cargar usuarios', err) } finally {
       setLoading(false)
     }
   }, [])
@@ -87,7 +88,7 @@ export default function UsersScreen() {
           fetchUsers()
         } else toast.error(result.message)
       } else if (showModal === 'edit' && editingUser) {
-        const { password, ...updateData } = data
+        const { ...updateData } = data
         const result = await userService.update(editingUser.id, updateData as any)
         if (result.isSuccess) {
           toast.success('Usuario actualizado exitosamente')
@@ -96,7 +97,8 @@ export default function UsersScreen() {
           fetchUsers()
         } else toast.error(result.message)
       }
-    } catch {
+    } catch (err) {
+      Logger.error('UsersScreen', 'Error al guardar usuario', err)
       toast.error('Error al guardar el usuario')
     }
   }
@@ -110,12 +112,13 @@ export default function UsersScreen() {
         setDeleteId(null)
         fetchUsers()
       } else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('UsersScreen', 'Error al eliminar usuario', err)
       toast.error('Error al eliminar el usuario')
     }
   }
 
-  const handleResetPassword = async (data: { newPassword: string }) => {
+  const handleResetPassword = async (_data: { newPassword: string }) => {
     if (!resetPasswordId) return
     try {
       const result = await userService.resetPassword(resetPasswordId)
@@ -124,7 +127,8 @@ export default function UsersScreen() {
         setResetPasswordId(null)
         resetPasswordForm.reset()
       } else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('UsersScreen', 'Error al restablecer password', err)
       toast.error('Error al restablecer la contraseña')
     }
   }

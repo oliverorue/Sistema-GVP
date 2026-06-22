@@ -18,6 +18,10 @@ public class SaleDetailConfiguration : IEntityTypeConfiguration<SaleDetail>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(e => e.Unit)
+            .HasMaxLength(20)
+            .HasDefaultValue("pz");
+
         // Relaciones
         builder.HasOne(e => e.Sale)
             .WithMany(s => s.SaleDetails)

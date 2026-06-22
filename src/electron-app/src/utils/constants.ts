@@ -7,9 +7,9 @@ export const PAYMENT_METHODS = [
 ] as const
 
 export const MOVEMENT_TYPES = [
-  { value: 'Entry', label: 'Entrada' },
-  { value: 'Exit', label: 'Salida' },
-  { value: 'Adjustment', label: 'Ajuste' },
+  { value: 'IN', label: 'Entrada' },
+  { value: 'OUT', label: 'Salida' },
+  { value: 'ADJUSTMENT', label: 'Ajuste' },
 ] as const
 
 export const SALE_STATUS = [

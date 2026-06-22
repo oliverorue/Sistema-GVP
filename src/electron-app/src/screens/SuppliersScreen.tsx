@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { supplierService } from '../services/supplierService'
+import { Logger } from '../utils/logger'
 import type { Supplier } from '../types/entities'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '../components/data-table/DataTable'
@@ -38,7 +39,7 @@ export default function SuppliersScreen() {
     try {
       const result = await supplierService.getAll()
       if (result.isSuccess && result.data) setSuppliers(result.data)
-    } catch { } finally {
+    } catch (err) { Logger.error('SuppliersScreen', 'Error al cargar proveedores', err) } finally {
       setLoading(false)
     }
   }, [])
@@ -81,7 +82,8 @@ export default function SuppliersScreen() {
           fetchSuppliers()
         } else toast.error(result.message)
       }
-    } catch {
+    } catch (err) {
+      Logger.error('SuppliersScreen', 'Error al guardar proveedor', err)
       toast.error('Error al guardar el proveedor')
     }
   }
@@ -95,7 +97,8 @@ export default function SuppliersScreen() {
         setDeleteId(null)
         fetchSuppliers()
       } else toast.error(result.message)
-    } catch {
+    } catch (err) {
+      Logger.error('SuppliersScreen', 'Error al eliminar proveedor', err)
       toast.error('Error al eliminar el proveedor')
     }
   }
