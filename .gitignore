@@ -45,3 +45,5 @@ api.log
 
 # TypeScript
 *.tsbuildinfo
+
+.kilo/   
