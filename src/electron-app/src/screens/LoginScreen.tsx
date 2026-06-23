@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AxiosError } from 'axios'
 import { useAuthStore } from '../stores/authStore'
 import { authService } from '../services/authService'
 import { User } from '../types/entities'
@@ -10,19 +11,27 @@ export default function LoginScreen() {
   const login = useAuthStore((s) => s.login)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [companyId, setCompanyId] = useState(1)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Check for session expired message from api.ts interceptor
+  useEffect(() => {
+    const expiredMsg = sessionStorage.getItem('gvp_session_expired')
+    if (expiredMsg) {
+      sessionStorage.removeItem('gvp_session_expired')
+      setError(expiredMsg)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    Logger.info('LoginScreen', 'Intento de inicio de sesión', { username, companyId })
+    Logger.info('LoginScreen', 'Intento de inicio de sesión', { username })
 
     try {
-      const result = await authService.login({ username, password, companyId })
+      const result = await authService.login({ username, password })
 
       if (!result.isSuccess) {
         setError(result.message)
@@ -50,8 +59,11 @@ export default function LoginScreen() {
       } else {
         navigate('/dashboard')
       }
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Error al iniciar sesion')
+    } catch (err) {
+      const message = err instanceof AxiosError
+        ? (err.response?.data as { message?: string })?.message
+        : 'Error al iniciar sesion'
+      setError(message || 'Error al iniciar sesion')
     } finally {
       setLoading(false)
     }
@@ -92,18 +104,6 @@ export default function LoginScreen() {
               className="input-field"
               placeholder="Ingrese su contrasena"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Empresa</label>
-            <select
-              value={companyId}
-              onChange={(e) => setCompanyId(Number(e.target.value))}
-              className="input-field"
-            >
-              <option value={1}>Mi Empresa S.A.</option>
-              <option value={2}>Empresa Demo</option>
-            </select>
           </div>
 
           {error && (

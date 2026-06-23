@@ -62,7 +62,7 @@ startupLog(`electron loaded, app type: ${typeof app}`);
 
 let mainWindow: _BrowserWindow | null = null;
 let tray: _Tray | null = null;
-const backend = new BackendManager();
+const backend = new BackendManager(startupLog);
 
 function createWindow() {
   startupLog('Creating window...');

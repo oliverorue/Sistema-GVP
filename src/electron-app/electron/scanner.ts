@@ -1,14 +1,15 @@
-import { BrowserWindow, ipcMain } from 'electron';
-
 export function setupScanner() {
   let scanBuffer = '';
   let scanTimeout: NodeJS.Timeout | null = null;
 
+  const { BrowserWindow, ipcMain } = require('electron');
+
   ipcMain.handle('scanner:register', () => {
     const win = BrowserWindow.getFocusedWindow();
     if (!win) return;
+    if (!win) return;
 
-    win.webContents.on('before-input-event', (_event, input) => {
+    win.webContents.on('before-input-event', (_event: Electron.Event, input: Electron.Input) => {
       if (input.type === 'keyDown' && input.key.length === 1) {
         scanBuffer += input.key;
 

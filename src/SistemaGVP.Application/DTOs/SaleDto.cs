@@ -52,6 +52,9 @@ public class CreateSaleDto
     public int? CustomerId { get; set; }
     public string PaymentMethod { get; set; } = "Cash";
     public decimal CashAmount { get; set; }
+    public decimal Discount { get; set; }
+    public decimal TaxRate { get; set; }
+    public bool? IvaIncluido { get; set; }
     public string? Notes { get; set; }
     public List<CreateSaleDetailDto> Items { get; set; } = new();
 }

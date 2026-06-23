@@ -44,6 +44,13 @@ cd /d "%~dp0.."
 echo OK.
 echo.
 
+echo [3b/4] Instalando binario de Electron para Windows...
+cd src\electron-app
+node node_modules\electron\install.js 2>nul
+cd /d "%~dp0.."
+echo OK.
+echo.
+
 echo [4/4] Creando/actualizando base de datos...
 dotnet ef database update --project src\SistemaGVP.Infrastructure --startup-project src\SistemaGVP.API
 if %errorlevel% neq 0 (

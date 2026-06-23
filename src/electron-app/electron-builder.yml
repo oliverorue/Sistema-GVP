@@ -4,11 +4,12 @@ directories:
   output: release
   buildResources: build
 
-asar: false
+asar: true
 
 files:
   - dist/**/*
   - dist-electron/**/*
+  - package.json
 
 extraResources:
   - from: backend-publish
@@ -28,11 +29,19 @@ mac:
   icon: build/icon.icns
 
 linux:
-  target: AppImage
+  target:
+    - AppImage
+  category: Office
   icon: build/icon.png
+  synopsis: Punto de Venta para Ferreterías
+  description: "Sistema completo de gestión para ferreterías: ventas, inventario, clientes, crédito, reportes y backups. Funciona sin internet."
 
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   perMachine: false
+  deleteAppDataOnUninstall: false
+  shortcutName: Sistema GVP
+
+publish: null

@@ -1,8 +1,10 @@
 {
   "name": "sistema-gvp",
   "version": "2.0.0",
-  "description": "Sistema GVP - Punto de Venta",
+  "description": "Sistema GVP - Punto de Venta para Ferreterías",
   "main": "dist-electron/main.js",
+  "author": "Sistema GVP",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.node.json && tsc && vite build",

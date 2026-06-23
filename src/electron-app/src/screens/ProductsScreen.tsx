@@ -59,8 +59,13 @@ export default function ProductsScreen() {
       if (result.isSuccess && result.data) {
         setProducts(result.data.items)
         setTotalPages(result.data.totalPages)
+      } else {
+        toast.error(result.message || 'Error al cargar productos')
       }
-    } catch (err) { Logger.error('ProductsScreen', 'Error al cargar productos', err) } finally {
+    } catch (err) {
+      Logger.error('ProductsScreen', 'Error al cargar productos', err)
+      toast.error('Error al cargar productos')
+    } finally {
       setLoading(false)
     }
   }, [page, search])
@@ -105,7 +110,10 @@ export default function ProductsScreen() {
           toast.error(result.message)
         }
       } else if (showModal === 'edit' && editingProduct) {
-        const result = await productService.update(editingProduct.id, data)
+        const result = await productService.update(editingProduct.id, {
+          ...data,
+          currentStock: editingProduct.currentStock,
+        })
         if (result.isSuccess) {
           toast.success('Producto actualizado exitosamente')
           setShowModal(null)

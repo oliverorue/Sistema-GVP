@@ -1,10 +1,10 @@
 import api from './api'
-import { ApiResponse } from '../types/api'
+import { ApiResponse, PagedData } from '../types/api'
 import { User } from '../types/entities'
 
 export const userService = {
   getAll: async (page = 1, pageSize = 25) => {
-    const response = await api.get<ApiResponse<any>>(`/users?pageNumber=${page}&pageSize=${pageSize}`)
+    const response = await api.get<ApiResponse<PagedData<User>>>(`/users?pageNumber=${page}&pageSize=${pageSize}`)
     return response.data
   },
 

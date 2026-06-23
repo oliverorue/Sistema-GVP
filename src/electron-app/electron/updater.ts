@@ -1,10 +1,11 @@
-import { app, BrowserWindow } from 'electron';
+import type { BrowserWindow } from 'electron';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 
 export function setupUpdater(mainWindow: BrowserWindow | null) {
+  const { app } = require('electron');
   // Skip updater in local/unpacked builds where app-update.yml doesn't exist
   // (only generated during full NSIS installer build)
   const updateConfigPath = join(process.resourcesPath, 'app-update.yml');

@@ -15,6 +15,7 @@ export interface ElectronAPI {
   getAppVersion: () => Promise<string>
   onBackendStatus: (callback: (status: string) => void) => void
   printTicket: (html: string) => Promise<{ success: boolean; message?: string }>
+  htmlToPdf: (html: string) => Promise<{ success: boolean; data?: string; message?: string }>
   getLicenseStatus: () => Promise<LicenseStatus>
   activateLicense: (licenseKey: string) => Promise<LicenseResult>
   registerScanner: () => Promise<void>

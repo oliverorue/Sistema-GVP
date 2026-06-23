@@ -41,6 +41,27 @@ export default function SalesScreen() {
   const [customerResults, setCustomerResults] = useState<Customer[]>([])
   const [creditWarning, setCreditWarning] = useState<{ balance: number; limit: number } | null>(null)
   const [stayAfterSale, setStayAfterSale] = useState(true)
+  const [quantityEdits, setQuantityEdits] = useState<Record<number, string>>({})
+  const [cashInput, setCashInput] = useState('')
+  const [discountInput, setDiscountInput] = useState('')
+
+  const formatES = (value: string) => {
+    const cleaned = value.replace(/\./g, '').replace(',', '.')
+    const num = parseFloat(cleaned)
+    return {
+      display: isNaN(num) ? '' : num.toLocaleString('es-PY', { minimumFractionDigits: 0, maximumFractionDigits: 2 }),
+      number: isNaN(num) ? 0 : num,
+    }
+  }
+
+  // Init cash/discount inputs when payment modal opens
+  useEffect(() => {
+    if (showPayment) {
+      const state = useCartStore.getState()
+      setCashInput(state.cashAmount > 0 ? state.cashAmount.toLocaleString('es-PY', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : '')
+      setDiscountInput(state.discount > 0 ? state.discount.toLocaleString('es-PY', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : '')
+    }
+  }, [showPayment])
 
   useEffect(() => {
     const api = window.electronAPI
@@ -98,12 +119,14 @@ export default function SalesScreen() {
     setLoading(true)
     Logger.info('SalesScreen', 'Procesando venta', { items: cart.items.length, total: cart.total() })
     try {
-      const result = await saleService.create({
+        const result = await saleService.create({
         customerId: cart.customerId,
         paymentMethod: cart.paymentMethod,
         cashAmount: cart.cashAmount,
         discount: cart.discount,
         notes: cart.notes,
+        ivaIncluido: cart.ivaIncluido,
+        taxRate: cart.taxRate,
         items: cart.items.map((i) => ({
           productId: i.productId,
           quantity: i.quantity,
@@ -113,7 +136,7 @@ export default function SalesScreen() {
       })
 
       if (result.isSuccess && result.data) {
-        Logger.info('SalesScreen', 'Venta completada', { saleId: result.data.id, invoiceNumber: (result.data as any).invoiceNumber })
+        Logger.info('SalesScreen', 'Venta completada', { saleId: result.data.id, invoiceNumber: result.data.invoiceNumber })
         toast.success(`Venta completada — ${formatCurrency(cart.total())}`)
         const saleId = result.data.id
         cart.clearCart()
@@ -121,6 +144,7 @@ export default function SalesScreen() {
         printSaleTicket(saleId)
         if (!stayAfterSale) navigate('/sales-history')
       } else {
+        toast.error(result.message || 'Error al procesar la venta')
         Logger.warn('SalesScreen', 'Venta fallida', { message: result.message })
       }
     } catch (err) {
@@ -140,6 +164,8 @@ export default function SalesScreen() {
         cashAmount: 0,
         discount: cart.discount,
         notes: cart.notes,
+        ivaIncluido: cart.ivaIncluido,
+        taxRate: cart.taxRate,
         items: cart.items.map((i) => ({
           productId: i.productId,
           quantity: i.quantity,
@@ -150,10 +176,12 @@ export default function SalesScreen() {
       if (result.isSuccess) {
         toast.success('Venta pausada')
         cart.clearCart()
-      } else toast.error(result.message)
+      } else {
+        toast.error(result.message || 'Error al pausar venta')
+      }
     } catch (err) {
       Logger.error('SalesScreen', 'Error al pausar venta', err)
-      toast.error('Error al pausar la venta')
+      toast.error('Error al pausar venta')
     }
   }, [cart])
 
@@ -320,17 +348,43 @@ export default function SalesScreen() {
                   </button>
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <button
-                      onClick={() => cart.updateQuantity(item.productId, Math.max(0.01, +(item.quantity - 0.5).toFixed(2)))}
-                      className="w-6 h-6 bg-white border rounded flex items-center justify-center"
+                      onClick={() => cart.updateQuantity(item.productId, +(item.quantity - 1).toFixed(2))}
+                      className="w-6 h-6 bg-white border rounded flex items-center justify-center hover:bg-slate-100"
                     >
                       <Minus className="w-3 h-3" />
                     </button>
-                    <span className="text-sm font-medium w-12 text-center">{item.quantity}</span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={quantityEdits[item.productId] ?? String(item.quantity)}
+                      onChange={(e) => {
+                        setQuantityEdits((prev) => ({ ...prev, [item.productId]: e.target.value }))
+                      }}
+                      onBlur={() => {
+                        const raw = quantityEdits[item.productId]
+                        if (raw !== undefined) {
+                          const val = parseFloat(raw.replace(',', '.'))
+                          if (!isNaN(val) && val > 0 && val !== item.quantity) {
+                            cart.updateQuantity(item.productId, val)
+                          }
+                          setQuantityEdits((prev) => {
+                            const copy = { ...prev }
+                            delete copy[item.productId]
+                            return copy
+                          })
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                      }}
+                      className="w-16 h-7 text-center text-sm font-medium border border-slate-200 rounded focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300"
+                      placeholder={String(item.quantity)}
+                    />
                     <button
-                      onClick={() => cart.updateQuantity(item.productId, +(item.quantity + 0.5).toFixed(2))}
-                      className="w-6 h-6 bg-white border rounded flex items-center justify-center"
+                      onClick={() => cart.updateQuantity(item.productId, +(item.quantity + 1).toFixed(2))}
+                      className="w-6 h-6 bg-white border rounded flex items-center justify-center hover:bg-slate-100"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
@@ -410,13 +464,47 @@ export default function SalesScreen() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Método de pago</label>
                 <select
                   value={cart.paymentMethod}
-                  onChange={(e) => cart.setPaymentMethod(e.target.value as any)}
+                  onChange={(e) => cart.setPaymentMethod(e.target.value as 'Cash' | 'Card' | 'Transfer' | 'Credit')}
                   className="input-field"
                 >
                   <option value="Cash">Efectivo</option>
                   <option value="Card">Tarjeta</option>
                   <option value="Transfer">Transferencia</option>
+                  <option value="Credit">Crédito</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={cart.ivaIncluido}
+                    onChange={(e) => cart.setIvaIncluido(e.target.checked)}
+                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="text-sm text-slate-700">
+                    IVA incluido ({totalTaxRate.toFixed(0)}%)
+                  </span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Descuento global</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">Gs.</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={discountInput}
+                    onChange={(e) => {
+                      const { display, number } = formatES(e.target.value)
+                      setDiscountInput(display)
+                      cart.setGlobalDiscount(number)
+                    }}
+                    className="input-field pl-10"
+                    placeholder="0"
+                  />
+                </div>
               </div>
 
               {cart.paymentMethod === 'Cash' && (
@@ -425,16 +513,16 @@ export default function SalesScreen() {
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">Gs.</span>
                     <input
-                      type="number"
-                      value={cart.cashAmount === 0 ? '' : cart.cashAmount}
+                      type="text"
+                      inputMode="decimal"
+                      value={cashInput}
                       onChange={(e) => {
-                        const val = e.target.value
-                        cart.setCashAmount(val === '' ? 0 : Number(val))
+                        const { display, number } = formatES(e.target.value)
+                        setCashInput(display)
+                        cart.setCashAmount(number)
                       }}
                       className="input-field pl-10 text-lg font-semibold"
                       placeholder="0"
-                      min="0"
-                      step="1000"
                     />
                   </div>
                   {cart.cashAmount >= cart.total() && cart.cashAmount > 0 && (

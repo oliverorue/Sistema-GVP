@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TrendingUp, AlertTriangle, DollarSign, ShoppingCart, PauseCircle, Users, Package, ArrowRight } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid } from 'recharts'
+import { toast } from 'sonner'
 import { useApi } from '../hooks/useApi'
 import { reportService } from '../services/reportService'
 import { ChartCard } from '../components/charts/ChartCard'
 import { formatDateTime } from '../utils/format'
 import { Logger } from '../utils/logger'
+import type { SalesReportRow } from '../types/api'
 
 interface DashboardData {
   todaySales: { totalSales: number; totalRevenue: number; totalTax: number; averageTicket: number } | null
@@ -46,17 +48,25 @@ export default function DashboardScreen() {
       if (summaryResult.status === 'fulfilled' && summaryResult.value.ok) {
         setData(summaryResult.value.data)
       } else {
-        Logger.error('Dashboard', 'Error al cargar resumen', summaryResult.status === 'rejected' ? summaryResult.reason : 'Respuesta no exitosa')
+        let errorMsg = 'Error desconocido'
+        if (summaryResult.status === 'rejected') {
+          errorMsg = String(summaryResult.reason)
+        } else if (summaryResult.status === 'fulfilled' && !summaryResult.value.ok) {
+          errorMsg = summaryResult.value.message || 'Error desconocido'
+        }
+        Logger.error('Dashboard', 'Error al cargar resumen', errorMsg)
+        toast.error('Error al cargar datos del dashboard')
       }
 
       if (salesReportResult.status === 'fulfilled') {
         const sr = salesReportResult.value
         if (sr.isSuccess && Array.isArray(sr.data)) {
+          const rows = sr.data as SalesReportRow[]
           setDailySales(
-            sr.data.map((r: any) => ({
+            rows.map((r) => ({
               date: r.date || '',
-              total: r.totalAmount || r.total || 0,
-              count: r.totalSales || r.count || 0,
+              total: r.totalAmount || 0,
+              count: r.totalSales || 0,
             }))
           )
         }

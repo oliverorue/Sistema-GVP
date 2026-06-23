@@ -4,6 +4,11 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
+API_BIN="$PROJECT_DIR/src/SistemaGVP.API/bin"
+API_OBJ="$PROJECT_DIR/src/SistemaGVP.API/obj"
+PUBLISH_DIR="$PROJECT_DIR/src/electron-app/backend-publish"
+FRONTEND_DIR="$PROJECT_DIR/src/electron-app"
+
 API_PID=""
 
 cleanup() {
@@ -17,18 +22,7 @@ cleanup() {
 }
 trap cleanup SIGINT SIGTERM EXIT
 
-echo "========================================"
-echo "  Sistema GVP POS - Inicio (Linux)"
-echo "========================================"
-echo ""
-echo "Elige el modo de inicio:"
-echo "  [1] API + React Vite  - Backend + Frontend en navegador (desarrollo)"
-echo "  [2] API sola          - Solo backend en http://127.0.0.1:5000"
-echo "  [3] Produccion local  - Backend compilado + Electron (requiere build.sh primero)"
-echo ""
-
-read -p "Selecciona (1/2/3): " MODE
-
+# ─── Helper: wait for API health ───────────────────
 wait_for_api() {
   echo "Esperando a que la API responda..."
   for i in $(seq 1 30); do
@@ -42,56 +36,47 @@ wait_for_api() {
   return 1
 }
 
-case "$MODE" in
-  1)
-    echo ""
-    echo "[1/2] Iniciando API en http://127.0.0.1:5000..."
-    dotnet run --project "$PROJECT_DIR/src/SistemaGVP.API/SistemaGVP.API.csproj" &
-    API_PID=$!
+# ═══════════════════════════════════════════════════
+echo "========================================"
+echo "  Sistema GVP POS - Inicio (Linux)"
+echo "========================================"
+echo ""
 
-    wait_for_api
+# ─── Clean stale builds ──────────────────────────
+echo "[1/4] Limpiando compilaciones anteriores..."
+rm -rf "$API_BIN" "$API_OBJ" "$PUBLISH_DIR"
+echo "  OK"
+echo ""
 
-    echo ""
-    echo "[2/2] Iniciando frontend React..."
-    cd "$PROJECT_DIR/src/electron-app"
-    npm run dev
-    ;;
+# ─── Restore + Build backend ────────────────────
+echo "[2/4] Restaurando y compilando backend..."
+dotnet restore "$PROJECT_DIR" --nologo 2>&1 | tail -1
+dotnet build "$PROJECT_DIR/SistemaGVP.sln" --nologo 2>&1 | tail -1
+echo "  OK"
+echo ""
 
-  2)
-    echo ""
-    echo "Iniciando API sola en http://127.0.0.1:5000..."
-    dotnet run --project "$PROJECT_DIR/src/SistemaGVP.API/SistemaGVP.API.csproj"
-    ;;
+# ─── Frontend dependencies ──────────────────────
+echo "[3/4] Verificando dependencias del frontend..."
+if [ ! -d "$FRONTEND_DIR/node_modules" ]; then
+  cd "$FRONTEND_DIR"
+  npm install --silent
+  echo "  Dependencias instaladas"
+else
+  echo "  node_modules existe, omitiendo npm install"
+fi
+echo ""
 
-  3)
-    echo ""
-    BACKEND_PUBLISH_DIR="$PROJECT_DIR/src/electron-app/backend-publish"
-    BACKEND_BIN="$BACKEND_PUBLISH_DIR/SistemaGVP.API"
+# ─── Mode: always development (API + Vite) ──────
+# Mode 1 is the default. Use scripts/build.sh for production builds.
+echo "[4/4] Iniciando API en http://127.0.0.1:5000..."
+dotnet run --project "$PROJECT_DIR/src/SistemaGVP.API/SistemaGVP.API.csproj" &
+API_PID=$!
 
-    if [ ! -f "$BACKEND_BIN" ]; then
-      echo "Backend compilado no encontrado. Publicando..."
-      dotnet publish "$PROJECT_DIR/src/SistemaGVP.API/SistemaGVP.API.csproj" \
-        -c Release --self-contained -r linux-x64 \
-        -o "$BACKEND_PUBLISH_DIR"
-      echo "Publicación completada."
-    fi
+wait_for_api
 
-    echo "[1/2] Iniciando backend compilado..."
-    cd "$BACKEND_PUBLISH_DIR"
-    ./SistemaGVP.API --urls http://127.0.0.1:5000 &
-    API_PID=$!
-    cd "$PROJECT_DIR"
-
-    wait_for_api
-
-    echo ""
-    echo "[2/2] Iniciando Electron..."
-    cd "$PROJECT_DIR/src/electron-app"
-    GVPSKIPBACKEND=1 npx electron .
-    ;;
-
-  *)
-    echo "Opción no válida."
-    exit 1
-    ;;
-esac
+echo ""
+echo "Iniciando frontend React en http://localhost:5173..."
+echo "  (Abrí esa URL en el navegador)"
+echo ""
+cd "$FRONTEND_DIR"
+npm run dev

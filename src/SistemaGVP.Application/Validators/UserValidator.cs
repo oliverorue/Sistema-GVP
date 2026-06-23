@@ -47,8 +47,5 @@ public class LoginDtoValidator : AbstractValidator<LoginDto>
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("La contraseña es obligatoria.");
-
-        RuleFor(x => x.CompanyId)
-            .GreaterThan(0).WithMessage("La empresa es obligatoria.");
     }
 }

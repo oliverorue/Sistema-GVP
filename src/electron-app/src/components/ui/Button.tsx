@@ -1,126 +1,70 @@
-/**
- * Componente Button reutilizable con variantes
- * 
- * Uso:
- * <Button variant="primary" size="md">Guardar</Button>
- * <Button variant="danger" loading>Eliminando...</Button>
- */
-
-import React from 'react';
+import React from 'react'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /**
-   * Variante visual del botón
-   * @default 'primary'
-   */
-  variant?: 'primary' | 'secondary' | 'danger' | 'warning' | 'success' | 'ghost';
-
-  /**
-   * Tamaño del botón
-   * @default 'md'
-   */
-  size?: 'sm' | 'md' | 'lg';
-
-  /**
-   * Mostrar estado de carga
-   * @default false
-   */
-  loading?: boolean;
-
-  /**
-   * Texto a mostrar mientras carga
-   * @default '⏳ Procesando...'
-   */
-  loadingText?: string;
-
-  /**
-   * Ícono a la izquierda del texto (HTML o componente)
-   */
-  leftIcon?: React.ReactNode;
-
-  /**
-   * Ícono a la derecha del texto
-   */
-  rightIcon?: React.ReactNode;
-
-  /**
-   * Ancho completo del contenedor
-   * @default false
-   */
-  fullWidth?: boolean;
+  variant?: 'primary' | 'secondary' | 'danger' | 'warning' | 'success' | 'ghost'
+  size?: 'sm' | 'md' | 'lg'
+  loading?: boolean
+  loadingText?: string
+  leftIcon?: React.ReactNode
+  rightIcon?: React.ReactNode
+  fullWidth?: boolean
 }
 
 const variantClasses: Record<string, string> = {
-  primary:
-    'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-gray-400 dark:bg-blue-700 dark:hover:bg-blue-800',
-  secondary:
-    'bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400 disabled:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600',
-  danger:
-    'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-gray-400 dark:bg-red-700 dark:hover:bg-red-800',
-  warning:
-    'bg-yellow-500 text-white hover:bg-yellow-600 active:bg-yellow-700 disabled:bg-gray-400 dark:bg-yellow-600 dark:hover:bg-yellow-700',
-  success:
-    'bg-green-600 text-white hover:bg-green-700 active:bg-green-800 disabled:bg-gray-400 dark:bg-green-700 dark:hover:bg-green-800',
-  ghost:
-    'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700',
-};
+  primary: 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white hover:from-indigo-700 hover:to-indigo-800 active:scale-[0.98] shadow-sm shadow-indigo-200 hover:shadow-md hover:shadow-indigo-300 disabled:opacity-50 disabled:shadow-none',
+  secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 active:scale-[0.98] disabled:opacity-50',
+  danger: 'bg-gradient-to-br from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 active:scale-[0.98] shadow-sm shadow-red-200 hover:shadow-md hover:shadow-red-300 disabled:opacity-50 disabled:shadow-none',
+  warning: 'bg-gradient-to-br from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 active:scale-[0.98] shadow-sm shadow-amber-200 hover:shadow-md hover:shadow-amber-300 disabled:opacity-50 disabled:shadow-none',
+  success: 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 active:scale-[0.98] shadow-sm shadow-emerald-200 hover:shadow-md hover:shadow-emerald-300 disabled:opacity-50 disabled:shadow-none',
+  ghost: 'bg-transparent text-slate-600 hover:bg-slate-100 active:bg-slate-200 active:scale-[0.98] disabled:opacity-50',
+}
 
 const sizeClasses: Record<string, string> = {
-  sm: 'px-3 py-1.5 text-sm font-medium',
-  md: 'px-4 py-2 text-base font-medium',
-  lg: 'px-6 py-3 text-lg font-medium',
-};
+  sm: 'px-3 py-1.5 text-sm font-medium rounded-lg',
+  md: 'px-4 py-2 text-sm font-semibold rounded-lg',
+  lg: 'px-6 py-3 text-base font-semibold rounded-xl',
+}
+
+const focusClasses: Record<string, string> = {
+  primary: 'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+  secondary: 'focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2',
+  danger: 'focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2',
+  warning: 'focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2',
+  success: 'focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2',
+  ghost: 'focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2',
+}
+
+const Spinner = () => (
+  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+  </svg>
+)
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      variant = 'primary',
-      size = 'md',
-      loading = false,
-      loadingText = '⏳ Procesando...',
-      leftIcon,
-      rightIcon,
-      fullWidth = false,
-      disabled,
-      children,
-      className,
-      ...props
-    },
-    ref
-  ) => {
-    const baseClasses =
-      'inline-flex items-center justify-center gap-2 rounded-lg transition-colors duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:cursor-not-allowed';
-
-    const computedDisabled = disabled || loading;
-
-    const finalClassName = [
-      baseClasses,
-      variantClasses[variant],
-      sizeClasses[size],
-      fullWidth && 'w-full',
-      className,
-    ]
-      .filter(Boolean)
-      .join(' ');
-
+  ({ variant = 'primary', size = 'md', loading = false, loadingText, leftIcon, rightIcon, fullWidth = false, disabled, children, className, ...props }, ref) => {
+    const isDisabled = disabled || loading
     return (
       <button
         ref={ref}
-        disabled={computedDisabled}
-        className={finalClassName}
+        disabled={isDisabled}
+        className={[
+          'inline-flex items-center justify-center gap-2 transition-all duration-150 font-medium',
+          'disabled:cursor-not-allowed disabled:scale-100',
+          variantClasses[variant],
+          focusClasses[variant],
+          sizeClasses[size],
+          fullWidth ? 'w-full' : '',
+          className,
+        ].filter(Boolean).join(' ')}
         {...props}
       >
-        {!loading && leftIcon && <span>{leftIcon}</span>}
-        {loading && (
-          <span className="inline-block animate-spin text-lg">⟳</span>
-        )}
-        <span>
-          {loading ? loadingText : children}
-        </span>
-        {!loading && rightIcon && <span>{rightIcon}</span>}
+        {loading ? <Spinner /> : leftIcon ? <span className="w-4 h-4 flex-shrink-0">{leftIcon}</span> : null}
+        <span>{loading ? (loadingText ?? 'Cargando...') : children}</span>
+        {!loading && rightIcon && <span className="w-4 h-4 flex-shrink-0">{rightIcon}</span>}
       </button>
-    );
+    )
   }
-);
+)
 
-Button.displayName = 'Button';
+Button.displayName = 'Button'

@@ -18,7 +18,7 @@ import { SearchInput } from '../components/shared/SearchInput'
 const movementSchema = z.object({
   productId: z.number({ invalid_type_error: 'Seleccione un producto' }).min(1, 'Seleccione un producto'),
   type: z.string().min(1, 'Seleccione un tipo'),
-  quantity: z.number({ invalid_type_error: 'Ingrese una cantidad' }),
+  quantity: z.number({ invalid_type_error: 'Ingrese una cantidad' }).positive('La cantidad debe ser mayor a 0'),
   reason: z.string().min(1, 'La razón es requerida'),
   notes: z.string().optional(),
 })
@@ -80,7 +80,9 @@ export default function InventoryScreen() {
   }
 
   const onSubmit = async (data: MovementFormData) => {
-    const quantity = data.type === 'OUT' ? Math.abs(data.quantity) * -1 : Math.abs(data.quantity)
+    // Backend handles IN (adds), OUT (subtracts), ADJUSTMENT (sets stock)
+    // All quantities must be positive — backend determines direction by type
+    const quantity = Math.abs(data.quantity)
     try {
       const result = await inventoryService.createMovement({ ...data, quantity })
       if (result.isSuccess) {

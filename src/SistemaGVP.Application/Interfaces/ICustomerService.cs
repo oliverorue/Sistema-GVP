@@ -10,4 +10,5 @@ public interface ICustomerService
     Task<ServiceResult<CustomerDto>> CreateAsync(CustomerDto dto);
     Task<ServiceResult<CustomerDto>> UpdateAsync(CustomerDto dto);
     Task<ServiceResult<bool>> DeleteAsync(int id);
+    Task<ServiceResult<CustomerDto>> RegisterPaymentAsync(int customerId, decimal amount, string? notes);
 }

@@ -18,8 +18,9 @@ interface PersistedState {
   items: CartItem[]
   customerId?: number
   customerName?: string
-  paymentMethod: 'Cash' | 'Card' | 'Transfer'
+  paymentMethod: 'Cash' | 'Card' | 'Transfer' | 'Credit'
   discount: number
+  taxRate: number
   ivaIncluido: boolean
 }
 
@@ -27,7 +28,7 @@ interface CartState {
   items: CartItem[]
   customerId?: number
   customerName?: string
-  paymentMethod: 'Cash' | 'Card' | 'Transfer'
+  paymentMethod: 'Cash' | 'Card' | 'Transfer' | 'Credit'
   cashAmount: number
   notes: string
   discount: number
@@ -39,7 +40,7 @@ interface CartState {
   updateDiscount: (productId: number, discount: number) => void
   setCustomer: (id: number, name: string) => void
   clearCustomer: () => void
-  setPaymentMethod: (method: 'Cash' | 'Card' | 'Transfer') => void
+  setPaymentMethod: (method: 'Cash' | 'Card' | 'Transfer' | 'Credit') => void
   setCashAmount: (amount: number) => void
   setNotes: (notes: string) => void
   setGlobalDiscount: (discount: number) => void
@@ -73,6 +74,7 @@ function savePersistedState(state: CartState): void {
       customerName: state.customerName,
       paymentMethod: state.paymentMethod,
       discount: state.discount,
+      taxRate: state.taxRate,
       ivaIncluido: state.ivaIncluido,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
@@ -91,7 +93,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   cashAmount: 0,
   notes: '',
   discount: persisted.discount ?? 0,
-  taxRate: 0.10,
+  taxRate: persisted.taxRate ?? 0.10,
   ivaIncluido: persisted.ivaIncluido ?? true,
 
   addItem: (item) => {

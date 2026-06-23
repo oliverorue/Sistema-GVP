@@ -5,6 +5,7 @@ import { backupService } from '../services/backupService'
 import { formatDateTime, formatFileSize } from '../utils/format'
 import { Logger } from '../utils/logger'
 import type { BackupInfo } from '../types/entities'
+import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '../components/data-table/DataTable'
 import { Modal, ConfirmDialog } from '../components/ui'
 
@@ -64,14 +65,14 @@ export default function BackupScreen() {
     }
   }
 
-  const columns = [
-    { header: 'Archivo', accessorKey: 'fileName', cell: ({ row }: any) => <span className="font-mono text-sm">{row.original.fileName}</span> },
-    { header: 'Fecha', accessorKey: 'createdAt', cell: ({ row }: any) => <span className="text-sm text-slate-600">{formatDateTime(row.original.createdAt)}</span> },
-    { header: 'Tamaño', accessorKey: 'fileSizeBytes', cell: ({ row }: any) => <span className="text-right text-sm">{formatFileSize(row.original.fileSizeBytes)}</span> },
+  const columns: ColumnDef<BackupInfo>[] = [
+    { header: 'Archivo', accessorKey: 'fileName', cell: ({ row }) => <span className="font-mono text-sm">{row.original.fileName}</span> },
+    { header: 'Fecha', accessorKey: 'createdAt', cell: ({ row }) => <span className="text-sm text-slate-600">{formatDateTime(row.original.createdAt)}</span> },
+    { header: 'Tamaño', accessorKey: 'fileSizeBytes', cell: ({ row }) => <span className="text-right text-sm">{formatFileSize(row.original.fileSizeBytes)}</span> },
     {
       header: 'Integridad',
       accessorKey: 'hashSha256',
-      cell: ({ row }: any) => (
+      cell: ({ row }) => (
         row.original.hashSha256
           ? <CheckCircle className="w-5 h-5 text-emerald-500 mx-auto" />
           : <AlertTriangle className="w-5 h-5 text-amber-500 mx-auto" />
@@ -80,7 +81,7 @@ export default function BackupScreen() {
     {
       header: 'Acciones',
       id: 'actions',
-      cell: ({ row }: any) => (
+      cell: ({ row }) => (
         <div className="flex items-center justify-center gap-2">
           <button
             onClick={() => setRestoreFile(row.original.fileName)}

@@ -27,4 +27,9 @@ export const customerService = {
     const response = await api.delete<ApiResponse<boolean>>(`/customers/${id}`)
     return response.data
   },
+
+  registerPayment: async (id: number, amount: number, notes?: string) => {
+    const response = await api.post<ApiResponse<Customer>>(`/customers/${id}/payment`, { amount, notes })
+    return response.data
+  },
 }

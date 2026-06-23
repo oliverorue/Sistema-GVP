@@ -4,6 +4,7 @@ import { settingsService } from '../services/settingsService'
 import { saleService } from '../services/saleService'
 import { renderTicketHTML } from '../components/shared/TicketTemplate'
 import { Logger } from '../utils/logger'
+import type { Company } from '../types/entities'
 
 export function usePrintTicket() {
   const printSaleTicket = useCallback(async (saleId: number) => {
@@ -19,21 +20,29 @@ export function usePrintTicket() {
       }
 
       const sale = saleResult.data
-      const company = companyResult.isSuccess && companyResult.data
+      const company: Company = companyResult.isSuccess && companyResult.data
         ? companyResult.data
-        : { name: 'Mi Empresa', taxId: '', address: '', phone: '', email: '', taxRate: 0.10, ivaIncluido: true, currency: 'Gs.', lowStockThreshold: 10, isActive: true, createdAt: '' }
+        : { id: 0, name: 'Mi Empresa', taxId: '', address: '', phone: '', email: '', logoUrl: '', taxRate: 0.10, ivaIncluido: true, currency: 'Gs.', lowStockThreshold: 10, isActive: true, createdAt: '' }
 
-      const html = renderTicketHTML(sale, company as any)
+      const html = renderTicketHTML(sale, company)
 
       if (window.electronAPI?.printTicket) {
-        await window.electronAPI.printTicket(html)
-        toast.success('Imprimiendo ticket...')
+        const result = await window.electronAPI.printTicket(html)
+        if (result.success) {
+          toast.success('Ticket impreso')
+        } else {
+          Logger.error('usePrintTicket', 'Fallo de impresion', result.message)
+          toast.error(result.message || 'Error al imprimir ticket')
+        }
       } else {
+        // Browser fallback: open HTML in a new window for printing
         const w = window.open('', '_blank')
         if (w) {
+          w.document.open()
           w.document.write(html)
           w.document.close()
           w.onafterprint = () => w.close()
+          w.focus()
           w.print()
         }
       }

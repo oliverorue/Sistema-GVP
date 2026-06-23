@@ -9,20 +9,16 @@ public class UserRepository : BaseRepository<User>, IUserRepository
 {
     public UserRepository(AppDbContext context) : base(context) { }
 
-    public async Task<User?> GetByUsernameAsync(string username, int companyId)
+    public async Task<User?> GetByUsernameAsync(string username)
     {
         return await _dbSet
-            .FirstOrDefaultAsync(u => u.Username == username
-                                   && u.CompanyId == companyId
-                                   && u.IsActive);
+            .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
     }
 
-    public async Task<User?> GetByEmailAsync(string email, int companyId)
+    public async Task<User?> GetByEmailAsync(string email)
     {
         return await _dbSet
-            .FirstOrDefaultAsync(u => u.Email == email
-                                   && u.CompanyId == companyId
-                                   && u.IsActive);
+            .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
     }
 
     public async Task<bool> UsernameExistsAsync(string username, int companyId, int? excludeUserId = null)

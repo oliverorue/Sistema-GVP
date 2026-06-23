@@ -16,7 +16,6 @@ export interface PagedData<T> {
 export interface LoginRequest {
   username: string
   password: string
-  companyId: number
 }
 
 export interface LoginResponse {
@@ -41,6 +40,8 @@ export interface CreateSaleRequest {
   cashAmount: number
   discount?: number
   notes?: string
+  ivaIncluido?: boolean
+  taxRate?: number
   items: {
     productId: number
     quantity: number
@@ -60,4 +61,32 @@ export interface CreateInventoryMovementRequest {
 export interface ChangePasswordRequest {
   currentPassword: string
   newPassword: string
+}
+
+export interface SalesReportRow {
+  date: string
+  totalSales: number
+  itemCount: number
+  totalAmount: number
+}
+
+export interface LowStockProduct {
+  productName: string
+  currentStock: number
+  minStock: number
+  difference: number
+}
+
+export interface ProfitReport {
+  totalCost: number
+  totalRevenue: number
+  profit: number
+  margin: number
+}
+
+export interface InventoryValueRow {
+  productName: string
+  unitCost: number
+  currentStock: number
+  totalValue: number
 }

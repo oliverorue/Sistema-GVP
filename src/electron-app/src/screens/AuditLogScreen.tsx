@@ -7,6 +7,26 @@ import type { AuditLog } from '../types/entities'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '../components/data-table/DataTable'
 
+const ACTION_LABELS: Record<string, string> = {
+  Create: 'Creación', Update: 'Modificación', Delete: 'Eliminación',
+  Login: 'Inicio Sesión', Logout: 'Cierre Sesión', CancelSale: 'Anulación Venta',
+  BackupCreated: 'Backup Creado', BackupRestored: 'Backup Restaurado',
+  ExportReport: 'Reporte Exportado', LowStockAlert: 'Alerta Stock',
+}
+
+const ENTITY_LABELS: Record<string, string> = {
+  Product: 'Producto', Category: 'Categoría', Customer: 'Cliente',
+  Supplier: 'Proveedor', Sale: 'Venta', User: 'Usuario',
+  Company: 'Empresa', InventoryMovement: 'Mov. Inventario',
+}
+
+const ACTION_COLORS: Record<string, string> = {
+  Create: 'badge-success', Update: 'badge-info', Delete: 'badge-danger',
+  Login: 'badge-info', Logout: 'badge-warning', CancelSale: 'badge-danger',
+  BackupCreated: 'badge-success', BackupRestored: 'badge-warning',
+  ExportReport: 'badge-info', LowStockAlert: 'badge-warning',
+}
+
 export default function AuditLogScreen() {
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
@@ -15,39 +35,56 @@ export default function AuditLogScreen() {
   const [actionFilter, setActionFilter] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
-  const ENTITIES = ['', 'Product', 'Category', 'Customer', 'Supplier', 'User', 'Sale', 'Inventory', 'Settings', 'Backup']
-  const ACTIONS = ['', 'Create', 'Update', 'Delete']
+  const ENTITIES = ['', 'Product', 'Category', 'Customer', 'Supplier', 'User', 'Sale', 'InventoryMovement', 'Company']
+  const ACTIONS = ['', 'Create', 'Update', 'Delete', 'Login', 'Logout', 'CancelSale', 'BackupCreated', 'BackupRestored', 'ExportReport']
 
   const fetchLogs = useCallback(async () => {
     setLoading(true)
     try {
       const result = await auditService.getLogs({
+        pageNumber: page, pageSize: 25,
         entityFilter: entityFilter || undefined,
         actionFilter: actionFilter || undefined,
         startDate: dateFrom || undefined,
         endDate: dateTo || undefined,
       })
-      if (result.isSuccess) setLogs(result.data || [])
+      if (result.isSuccess && result.data) {
+        const paged = result.data as unknown as { items?: AuditLog[]; totalPages?: number; totalCount?: number }
+        setLogs(paged.items ?? [])
+        setTotalPages(paged.totalPages ?? 1)
+      } else {
+        setLogs([])
+      }
     } catch (err) { Logger.error('AuditLogScreen', 'Error al cargar auditoria', err) } finally { setLoading(false) }
-  }, [entityFilter, actionFilter, dateFrom, dateTo])
+  }, [entityFilter, actionFilter, dateFrom, dateTo, page])
 
   useEffect(() => { fetchLogs() }, [fetchLogs])
 
   const columns: ColumnDef<AuditLog>[] = [
-    { header: 'Fecha', accessorKey: 'createdAt', cell: ({ row }) => <span className="text-sm text-slate-600">{formatDateTime(row.original.createdAt)}</span> },
-    { header: 'Usuario', accessorKey: 'userName', cell: ({ row }) => <span className="text-sm">{row.original.userName}</span> },
+    { header: 'Fecha', accessorKey: 'createdAt',
+      cell: ({ row }) => <span className="text-xs text-slate-500 whitespace-nowrap">{formatDateTime(row.original.createdAt)}</span> },
+    { header: 'Usuario', accessorKey: 'userName',
+      cell: ({ row }) => <span className="text-sm font-medium">{row.original.userName}</span> },
     {
-      header: 'Acción',
-      accessorKey: 'action',
+      header: 'Acción', accessorKey: 'action',
       cell: ({ row }) => (
-        <span className={`badge ${row.original.action === 'Create' ? 'badge-success' : row.original.action === 'Update' ? 'badge-info' : row.original.action === 'Delete' ? 'badge-danger' : 'badge-warning'}`}>
-          {row.original.action}
+        <span className={`badge text-xs ${ACTION_COLORS[row.original.action] || 'badge-warning'}`}>
+          {ACTION_LABELS[row.original.action] || row.original.action}
         </span>
       ),
     },
-    { header: 'Entidad', accessorKey: 'entityName', cell: ({ row }) => <span className="text-sm text-slate-600">{row.original.entityName}</span> },
-    { header: 'Detalle', accessorKey: 'summary', cell: ({ row }) => <span className="text-sm text-slate-500">{row.original.summary || `${row.original.actionDisplay || ''} ${row.original.entityNameDisplay || ''}${row.original.entityId ? ` #${row.original.entityId}` : ''}`}</span> },
+    { header: 'Entidad', accessorKey: 'entityName',
+      cell: ({ row }) => <span className="text-sm">{ENTITY_LABELS[row.original.entityName] || row.original.entityName}</span> },
+    { header: 'Detalle', accessorKey: 'summary',
+      cell: ({ row }) => (
+        <span className="text-sm text-slate-500">
+          {row.original.summary ||
+            `${ACTION_LABELS[row.original.action] || row.original.action} de ${ENTITY_LABELS[row.original.entityName] || row.original.entityName}${row.original.entityId ? ` #${row.original.entityId}` : ''}`}
+        </span>
+      )},
   ]
 
   return (
@@ -86,7 +123,7 @@ export default function AuditLogScreen() {
         </div>
       )}
 
-      <DataTable columns={columns} data={logs} loading={loading} emptyMessage="Sin registros de auditoría" />
+      <DataTable columns={columns} data={logs} loading={loading} emptyMessage="Sin registros de auditoría" page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   )
 }

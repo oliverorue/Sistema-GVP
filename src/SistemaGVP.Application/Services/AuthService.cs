@@ -46,7 +46,7 @@ public class AuthService : IAuthService
             if (string.IsNullOrWhiteSpace(loginDto.Password))
                 return ServiceResult<UserDto>.Failure("La contraseña es requerida.");
 
-            var user = await _userRepository.GetByUsernameAsync(loginDto.Username, loginDto.CompanyId);
+            var user = await _userRepository.GetByUsernameAsync(loginDto.Username);
             if (user == null)
                 return ServiceResult<UserDto>.Failure("Usuario o contraseña incorrectos.");
 

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace SistemaGVP.Application.DTOs;
 
 public class AuditLogDto
@@ -13,6 +15,7 @@ public class AuditLogDto
     public string? IpAddress { get; set; }
     public DateTime CreatedAt { get; set; }
 
+    [JsonInclude]
     public string ActionDisplay => Action switch
     {
         "Create" => "Creación",
@@ -28,6 +31,7 @@ public class AuditLogDto
         _ => Action
     };
 
+    [JsonInclude]
     public string EntityNameDisplay => EntityName switch
     {
         "Product" => "Producto",
@@ -41,5 +45,6 @@ public class AuditLogDto
         _ => EntityName
     };
 
+    [JsonInclude]
     public string Summary => $"{ActionDisplay} - {EntityNameDisplay} {(EntityId.HasValue ? $"#{EntityId}" : "")} por {UserName}";
 }

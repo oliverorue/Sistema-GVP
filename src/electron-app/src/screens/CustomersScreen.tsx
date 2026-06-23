@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, DollarSign } from 'lucide-react'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -31,6 +31,9 @@ export default function CustomersScreen() {
   const [showModal, setShowModal] = useState<'create' | 'edit' | null>(null)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [paymentCustomer, setPaymentCustomer] = useState<Customer | null>(null)
+  const [paymentAmount, setPaymentAmount] = useState('')
+  const [paymentNotes, setPaymentNotes] = useState('')
 
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
@@ -92,6 +95,25 @@ export default function CustomersScreen() {
     }
   }
 
+  const handlePayment = async () => {
+    if (!paymentCustomer || !paymentAmount) return
+    try {
+      const amount = parseFloat(paymentAmount.replace(/\./g, '').replace(',', '.'))
+      if (isNaN(amount) || amount <= 0) { toast.error('Ingrese un monto válido'); return }
+      const result = await customerService.registerPayment(paymentCustomer.id, amount, paymentNotes || undefined)
+      if (result.isSuccess) {
+        toast.success(result.message || 'Pago registrado')
+        setPaymentCustomer(null)
+        setPaymentAmount('')
+        setPaymentNotes('')
+        fetchCustomers()
+      } else toast.error(result.message)
+    } catch (err) {
+      Logger.error('CustomersScreen', 'Error al registrar pago', err)
+      toast.error('Error al registrar el pago')
+    }
+  }
+
   const handleDelete = async () => {
     if (!deleteId) return
     try {
@@ -125,7 +147,14 @@ export default function CustomersScreen() {
       header: 'Acciones',
       id: 'actions',
       cell: ({ row }) => (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-1">
+          <button onClick={() => {
+            setPaymentCustomer(row.original)
+            setPaymentAmount('')
+            setPaymentNotes('')
+          }} className="p-1 text-slate-400 hover:text-emerald-600" title="Registrar pago">
+            <DollarSign className="w-4 h-4" />
+          </button>
           <button onClick={() => openEditModal(row.original)} className="p-1 text-slate-400 hover:text-indigo-600"><Edit2 className="w-4 h-4" /></button>
           <button onClick={() => setDeleteId(row.original.id)} className="p-1 text-slate-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
         </div>
@@ -178,6 +207,48 @@ export default function CustomersScreen() {
       </Modal>
 
       <ConfirmDialog isOpen={deleteId !== null} onClose={() => setDeleteId(null)} onConfirm={handleDelete} title="Eliminar Cliente" message="¿Está seguro de eliminar este cliente? Esta acción no se puede deshacer." confirmLabel="Eliminar" variant="danger" />
+
+      {/* Payment Modal */}
+      <Modal isOpen={paymentCustomer !== null} onClose={() => { setPaymentCustomer(null); setPaymentAmount(''); setPaymentNotes('') }} title={`Cobrar a ${paymentCustomer?.name}`} size="sm">
+        <div className="space-y-4">
+          {paymentCustomer && (
+            <div className="bg-slate-50 rounded-lg p-3 text-sm">
+              <p className="text-slate-500">Saldo pendiente</p>
+              <p className={`text-xl font-bold ${paymentCustomer.balance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                {formatCurrency(paymentCustomer.balance)}
+              </p>
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Monto a cobrar</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">Gs.</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                className="input-field pl-10 text-lg font-semibold"
+                placeholder="0"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Notas</label>
+            <input
+              type="text"
+              value={paymentNotes}
+              onChange={(e) => setPaymentNotes(e.target.value)}
+              className="input-field"
+              placeholder="Opcional"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => { setPaymentCustomer(null); setPaymentAmount(''); setPaymentNotes('') }} className="btn-secondary">Cancelar</button>
+            <button type="button" onClick={handlePayment} className="btn-primary">Registrar Pago</button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

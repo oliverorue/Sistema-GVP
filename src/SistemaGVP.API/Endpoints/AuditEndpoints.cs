@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using SistemaGVP.Application.Common;
 using SistemaGVP.Application.Interfaces;
 
@@ -10,15 +11,19 @@ public static class AuditEndpoints
         var group = app.MapGroup("/api/audit").RequireAuthorization().RequireAuthorization("Admin");
 
         group.MapGet("/logs", async (
-            [AsParameters] PaginationFilter filter,
-            string? actionFilter,
-            string? entityFilter,
-            DateTime? startDate,
-            DateTime? endDate,
+            [FromQuery] int pageNumber,
+            [FromQuery] int pageSize,
+            [FromQuery] string? actionFilter,
+            [FromQuery] string? entityFilter,
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate,
             IAuditService service,
             ICurrentUserService currentUser) =>
         {
-            var result = await service.GetAuditLogsAsync(currentUser.CompanyId, filter, actionFilter, entityFilter, startDate, endDate);
+            var filter = new PaginationFilter(pageNumber, pageSize);
+            var from = startDate?.Date ?? DateTime.UtcNow.Date.AddMonths(-1);
+            var to = (endDate?.Date ?? DateTime.UtcNow.Date).AddDays(1).AddSeconds(-1);
+            var result = await service.GetAuditLogsAsync(currentUser.CompanyId, filter, actionFilter, entityFilter, from, to);
             return result.IsSuccess
                 ? Results.Ok(new { isSuccess = true, data = result.Data, message = result.Message, errors = result.Errors })
                 : Results.Ok(new { isSuccess = false, data = (object?)null, message = result.Message, errors = result.Errors });

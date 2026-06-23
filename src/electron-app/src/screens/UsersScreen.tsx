@@ -8,6 +8,7 @@ import { userService } from '../services/userService'
 import { USER_ROLES } from '../utils/constants'
 import { Logger } from '../utils/logger'
 import type { ColumnDef } from '@tanstack/react-table'
+import type { User } from '../types/entities'
 import { DataTable } from '../components/data-table/DataTable'
 import { Modal, ConfirmDialog, FormField } from '../components/ui'
 
@@ -27,10 +28,10 @@ const resetPasswordSchema = z.object({
 })
 
 export default function UsersScreen() {
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState<'create' | 'edit' | null>(null)
-  const [editingUser, setEditingUser] = useState<any | null>(null)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
   const [resetPasswordId, setResetPasswordId] = useState<number | null>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
@@ -61,7 +62,7 @@ export default function UsersScreen() {
     setShowModal('create')
   }
 
-  const openEditModal = (user: any) => {
+  const openEditModal = (user: User) => {
     setEditingUser(user)
     form.reset({
       username: user.username,
@@ -81,15 +82,14 @@ export default function UsersScreen() {
           toast.error('La contraseña debe tener al menos 6 caracteres')
           return
         }
-        const result = await userService.create(data as any)
+        const result = await userService.create(data as UserFormData & { role: 'Admin' | 'Cashier' })
         if (result.isSuccess) {
           toast.success('Usuario creado exitosamente')
           setShowModal(null)
           fetchUsers()
         } else toast.error(result.message)
       } else if (showModal === 'edit' && editingUser) {
-        const { ...updateData } = data
-        const result = await userService.update(editingUser.id, updateData as any)
+        const result = await userService.update(editingUser.id, data as UserFormData & { role: 'Admin' | 'Cashier' })
         if (result.isSuccess) {
           toast.success('Usuario actualizado exitosamente')
           setShowModal(null)
@@ -133,7 +133,7 @@ export default function UsersScreen() {
     }
   }
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<User>[] = [
     { header: 'Usuario', accessorKey: 'username', cell: ({ row }) => <span className="font-mono text-sm">{row.original.username}</span> },
     { header: 'Nombre', accessorKey: 'fullName', cell: ({ row }) => <span className="font-medium">{row.original.fullName}</span> },
     { header: 'Email', accessorKey: 'email', cell: ({ row }) => <span className="text-sm text-slate-600">{row.original.email}</span> },

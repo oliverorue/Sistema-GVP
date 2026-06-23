@@ -24,7 +24,7 @@ export default function AppLayout() {
 
   return (
     <div className="h-screen flex flex-col">
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="top-right" duration={4000} gap={8} />
       <Header />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />

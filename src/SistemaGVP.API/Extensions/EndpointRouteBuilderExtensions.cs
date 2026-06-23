@@ -26,6 +26,7 @@ public static class EndpointRouteBuilderExtensions
     public static IApplicationBuilder UseApiMiddleware(this IApplicationBuilder app)
     {
         app.UseExceptionHandling();
+        app.UseSecurityHeaders();
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();

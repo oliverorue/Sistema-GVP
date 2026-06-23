@@ -2,45 +2,65 @@
 title Sistema GVP - Build Produccion
 cd /d "%~dp0.."
 
+set PUBLISH_DIR=%CD%\src\electron-app\backend-publish
+set FRONTEND_DIR=%CD%\src\electron-app
+set RELEASE_DIR=%FRONTEND_DIR%\release
+
 echo ========================================
-echo   Sistema GVP POS - Build Produccion
+echo   Sistema GVP POS — Build (win)
 echo ========================================
 echo.
 
-echo [1/3] Generando iconos placeholder...
+:: ─── Clean ─────────────────────────────────────
+echo [1/5] Limpiando builds anteriores...
+if exist "%PUBLISH_DIR%" rmdir /s /q "%PUBLISH_DIR%"
+if exist "%FRONTEND_DIR%\dist" rmdir /s /q "%FRONTEND_DIR%\dist"
+if exist "%FRONTEND_DIR%\dist-electron" rmdir /s /q "%FRONTEND_DIR%\dist-electron"
+if exist "%RELEASE_DIR%" rmdir /s /q "%RELEASE_DIR%"
+echo   OK
+echo.
+
+:: ─── Icon ──────────────────────────────────────
+echo [2/5] Verificando icono...
 node scripts\generate-icons.js
 if %errorlevel% neq 0 (
     echo ERROR: Fallo la generacion de iconos.
     pause
     exit /b 1
 )
-echo OK.
+echo   OK
 echo.
 
-echo [2/3] Publicando backend .NET (win-x64 standalone)...
-dotnet publish src\SistemaGVP.API\SistemaGVP.API.csproj -c Release --self-contained -r win-x64 -o src\electron-app\backend-publish
+:: ─── Backend ───────────────────────────────────
+echo [3/5] Publicando backend .NET (win-x64)...
+dotnet publish src\SistemaGVP.API\SistemaGVP.API.csproj ^
+  -c Release --self-contained -r win-x64 ^
+  -o "%PUBLISH_DIR%" ^
+  -p:DebugType=none -p:DebugSymbols=false
 if %errorlevel% neq 0 (
     echo ERROR: Fallo la publicacion del backend.
     pause
     exit /b 1
 )
-echo OK.
+echo   OK
 echo.
 
-echo [3/3] Compilando frontend Electron + empaquetando instalador...
-cd src\electron-app
-
-:: Pre-extract winCodeSign cache with -snl to avoid symlink errors
-echo Verificando cache de empaquetado...
-where 7za.exe >nul 2>&1
-if %errorlevel% equ 0 (
-    7za x "%TEMP%\wincodesign.7z" -o"%LOCALAPPDATA%\electron-builder\Cache\winCodeSign\2.6.0" -snl -bd -y >nul 2>&1
+:: ─── Electron ──────────────────────────────────
+echo [4/5] Compilando y empaquetando Electron...
+cd /d "%FRONTEND_DIR%"
+call npx tsc -p tsconfig.node.json
+if %errorlevel% neq 0 (
+    echo ERROR: Fallo la compilacion TypeScript.
+    pause
+    exit /b 1
 )
-
-:: Set environment variables to disable code signing
-set CSC_IDENTITY_AUTO_DISCOVERY=false
-
-call npm run electron:build
+call npx vite build
+if %errorlevel% neq 0 (
+    echo ERROR: Fallo el build de Vite.
+    pause
+    exit /b 1
+)
+call npx electron-builder --win
 if %errorlevel% neq 0 (
     echo.
     echo ========================================
@@ -64,13 +84,20 @@ if %errorlevel% neq 0 (
     pause
     exit /b 1
 )
-
-cd ..\..
-echo OK.
+cd /d "%CD%"
 echo.
 
+:: ─── Result ────────────────────────────────────
+echo [5/5] Resultado:
+echo.
+if exist "%RELEASE_DIR%\*-Setup.exe" (
+    for %%f in ("%RELEASE_DIR%\*-Setup.exe") do echo   Windows: %%f
+) else (
+    echo   Windows Installer no encontrado
+)
+echo.
 echo ========================================
-echo   Build completado exitosamente.
-echo   Instalador: src\electron-app\release\Sistema GVP Setup *.exe
+echo   Build completado.
+echo   Los instaladores estan en: %RELEASE_DIR%
 echo ========================================
 pause

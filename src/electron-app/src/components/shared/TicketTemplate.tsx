@@ -88,7 +88,7 @@ export function renderTicketHTML(sale: Sale, company: Company): string {
   </table>
 
   <div class="payment-info">
-    <p>Método de pago: ${sale.paymentMethod === 'Cash' ? 'Efectivo' : sale.paymentMethod === 'Card' ? 'Tarjeta' : 'Transferencia'}</p>
+    <p>Método de pago: ${sale.paymentMethod === 'Cash' ? 'Efectivo' : sale.paymentMethod === 'Card' ? 'Tarjeta' : sale.paymentMethod === 'Transfer' ? 'Transferencia' : 'Crédito'}</p>
     ${sale.paymentMethod === 'Cash' && sale.cashAmount > 0 ? `<p>Efectivo recibido: ${formatCurrency(sale.cashAmount)}</p>` : ''}
     ${sale.paymentMethod === 'Cash' && sale.changeAmount > 0 ? `<p>Cambio: ${formatCurrency(sale.changeAmount)}</p>` : ''}
   </div>

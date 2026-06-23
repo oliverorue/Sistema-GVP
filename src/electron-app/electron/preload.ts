@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('backend:status-changed', (_event, status) => callback(status));
   },
   printTicket: (html: string) => ipcRenderer.invoke('printer:print', html),
+  htmlToPdf: (html: string) => ipcRenderer.invoke('printer:html-to-pdf', html),
   getLicenseStatus: () => ipcRenderer.invoke('license:status'),
   activateLicense: (licenseKey: string) => ipcRenderer.invoke('license:activate', licenseKey),
   registerScanner: () => ipcRenderer.invoke('scanner:register'),

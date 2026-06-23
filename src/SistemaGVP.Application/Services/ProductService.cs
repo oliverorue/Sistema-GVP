@@ -177,7 +177,17 @@ public class ProductService : IProductService
                     return ServiceResult<ProductDto>.Failure($"Ya existe otro producto con el código '{dto.Barcode}'.");
             }
 
+            // Preserve fields that should not change on update
+            var currentIsActive = existingProduct.IsActive;
+            var currentCreatedAt = existingProduct.CreatedAt;
+
             _mapper.Map(dto, existingProduct);
+
+            // Restore fields that come from the DTO with default values but shouldn't be overwritten
+            existingProduct.IsActive = currentIsActive;
+            existingProduct.CreatedAt = currentCreatedAt;
+            existingProduct.UpdatedAt = DateTime.UtcNow;
+
             _productRepository.Update(existingProduct);
             await _unitOfWork.CompleteAsync();
 
@@ -203,9 +213,14 @@ public class ProductService : IProductService
             if (product == null)
                 return ServiceResult<bool>.Failure("Producto no encontrado.");
 
+            // If product has stock, zero it out before soft-deleting
             if (product.CurrentStock > 0)
-                return ServiceResult<bool>.Failure(
-                    "No se puede desactivar un producto con stock positivo. Ajuste el inventario primero.");
+            {
+                _logger.LogWarning(
+                    "Producto {Id} | {Name} eliminado con stock {Stock} — stock puesto a 0",
+                    id, product.Name, product.CurrentStock);
+                product.CurrentStock = 0;
+            }
 
             product.IsActive = false;
             _productRepository.Update(product);

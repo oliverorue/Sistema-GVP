@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { toast } from 'sonner'
-import { AxiosError } from 'axios'
 import api from '../services/api'
+import { ApiError } from '../utils/errorTypes'
 import type { ApiResponse } from '../types/api'
 
 export type ApiResult<T> =
@@ -9,11 +9,8 @@ export type ApiResult<T> =
   | { ok: false; message: string; errors: string[] }
 
 function getErrorMessage(error: unknown): string {
-  if (error instanceof AxiosError) {
-    const data = error.response?.data as { message?: string } | undefined
-    if (data?.message) return data.message
-    if (error.response?.status === 401) return 'Sesión expirada'
-  }
+  if (error instanceof ApiError) return error.message
+  if (error instanceof Error) return error.message
   return 'Error de conexión'
 }
 

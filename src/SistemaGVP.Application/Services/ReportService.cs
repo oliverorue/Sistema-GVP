@@ -217,7 +217,8 @@ public class ReportService : IReportService
     {
         try
         {
-            var bytes = _excelExportService.ExportToBytes(data);
+            var headers = GetHeaders(reportName);
+            var bytes = _excelExportService.ExportToBytes(data, headers);
             return Task.FromResult(ServiceResult<byte[]>.Success(bytes));
         }
         catch (Exception ex)
@@ -226,6 +227,15 @@ public class ReportService : IReportService
             return Task.FromResult(ServiceResult<byte[]>.Failure("Error al exportar a Excel."));
         }
     }
+
+    private static Dictionary<string, string> GetHeaders(string reportName) => reportName switch
+    {
+        "sales" => new() { ["Date"] = "Día", ["TotalSales"] = "Ventas", ["ItemCount"] = "Items", ["TotalAmount"] = "Total" },
+        "low-stock" => new() { ["ProductName"] = "Producto", ["CurrentStock"] = "Stock", ["MinStock"] = "Mínimo", ["Difference"] = "Faltante" },
+        "profit" => new() { ["Period"] = "Período", ["TotalRevenue"] = "Ingreso", ["TotalCost"] = "Costo", ["Profit"] = "Ganancia", ["Margin"] = "Margen (%)" },
+        "inventory-value" => new() { ["ProductName"] = "Producto", ["UnitCost"] = "Costo Unit.", ["CurrentStock"] = "Stock", ["TotalValue"] = "Valor" },
+        _ => new()
+    };
 
     public Task<ServiceResult<byte[]>> ExportReportToPdfAsync<T>(List<T> data, string reportName)
     {

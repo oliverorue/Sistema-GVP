@@ -4,12 +4,8 @@ import { AuditLog } from '../types/entities'
 
 export const auditService = {
   getLogs: async (params?: {
-    page?: number
-    pageSize?: number
-    actionFilter?: string
-    entityFilter?: string
-    startDate?: string
-    endDate?: string
+    pageNumber?: number; pageSize?: number; actionFilter?: string;
+    entityFilter?: string; startDate?: string; endDate?: string;
   }) => {
     const response = await api.get<ApiResponse<AuditLog[]>>('/audit/logs', { params })
     return response.data

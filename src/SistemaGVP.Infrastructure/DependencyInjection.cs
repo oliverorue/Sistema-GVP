@@ -72,6 +72,7 @@ public static class DependencyInjection
         services.AddTransient<IExcelExportService, ExcelExportService>();
         services.AddTransient<IPdfReportService, PdfReportService>();
         services.AddScoped<IBackupService, BackupService>();
+        services.AddHostedService<BackupBackgroundService>();
         services.AddScoped<IAuditService, AuditService>();
 
         // ==========================================

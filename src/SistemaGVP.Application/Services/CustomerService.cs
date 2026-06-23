@@ -148,4 +148,37 @@ public class CustomerService : ICustomerService
             return ServiceResult<bool>.Failure("Error al desactivar cliente.");
         }
     }
+
+    public async Task<ServiceResult<CustomerDto>> RegisterPaymentAsync(int customerId, decimal amount, string? notes)
+    {
+        try
+        {
+            if (amount <= 0)
+                return ServiceResult<CustomerDto>.Failure("El monto del pago debe ser mayor a cero.");
+
+            var customer = await _repository.GetByIdAsync(customerId);
+            if (customer == null)
+                return ServiceResult<CustomerDto>.Failure("Cliente no encontrado.");
+
+            if (amount > customer.Balance)
+                return ServiceResult<CustomerDto>.Failure(
+                    $"El monto ingresado ({amount:N0}) supera el saldo pendiente ({customer.Balance:N0}).");
+
+            customer.Balance -= amount;
+            _repository.Update(customer);
+            await _unitOfWork.CompleteAsync();
+
+            _logger.LogInformation("Pago registrado para cliente #{Id} {Name}: -{Amount:N0}, nuevo saldo = {Balance:N0}{Notes}",
+                customerId, customer.Name, amount, customer.Balance,
+                !string.IsNullOrWhiteSpace(notes) ? $", notas: {notes}" : "");
+
+            var dto = _mapper.Map<CustomerDto>(customer);
+            return ServiceResult<CustomerDto>.Success(dto, $"Pago de {amount:N0} registrado. Saldo restante: {customer.Balance:N0}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al registrar pago para cliente {Id}", customerId);
+            return ServiceResult<CustomerDto>.Failure("Error al registrar el pago.");
+        }
+    }
 }

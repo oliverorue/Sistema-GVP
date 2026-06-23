@@ -60,6 +60,20 @@ public static class CustomerEndpoints
                 : Results.Ok(new { isSuccess = false, data = (object?)null, message = result.Message, errors = result.Errors });
         });
 
+        group.MapPost("/{id:int}/payment", async (int id, [FromBody] RegisterPaymentRequest request, ICustomerService service) =>
+        {
+            var result = await service.RegisterPaymentAsync(id, request.Amount, request.Notes);
+            return result.IsSuccess
+                ? Results.Ok(new { isSuccess = true, data = result.Data, message = result.Message, errors = result.Errors })
+                : Results.Ok(new { isSuccess = false, data = (object?)null, message = result.Message, errors = result.Errors });
+        });
+
         return app;
     }
+}
+
+public class RegisterPaymentRequest
+{
+    public decimal Amount { get; set; }
+    public string? Notes { get; set; }
 }

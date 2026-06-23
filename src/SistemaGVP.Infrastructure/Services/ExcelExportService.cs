@@ -22,15 +22,19 @@ public class ExcelExportService : IExcelExportService
     /// <summary>
     /// Exporta una lista de datos a CSV con BOM UTF-8 y retorna los bytes.
     /// </summary>
-    public byte[] ExportToBytes<T>(List<T> data)
+    public byte[] ExportToBytes<T>(List<T> data, Dictionary<string, string>? headers = null)
     {
         try
         {
             var sb = new StringBuilder();
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-            // Header
-            var header = string.Join(",", properties.Select(p => EscapeCsvField(p.Name)));
+            // Header with optional custom names
+            var header = string.Join(",", properties.Select(p =>
+            {
+                var name = headers != null && headers.TryGetValue(p.Name, out var label) ? label : p.Name;
+                return EscapeCsvField(name);
+            }));
             sb.AppendLine(header);
 
             // Data rows

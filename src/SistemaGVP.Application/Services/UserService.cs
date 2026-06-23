@@ -130,7 +130,7 @@ public class UserService : IUserService
                 return ServiceResult<UserDto>.Failure(errors);
             }
 
-            var existing = await _userRepository.GetByUsernameAsync(dto.Username, dto.CompanyId);
+            var existing = await _userRepository.GetByUsernameAsync(dto.Username);
             if (existing != null)
                 return ServiceResult<UserDto>.Failure("El nombre de usuario ya existe.");
 

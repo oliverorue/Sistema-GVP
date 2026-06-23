@@ -6,12 +6,12 @@ interface UseFormOptions<T> {
   validate?: (values: T) => Partial<Record<keyof T, string>>
 }
 
-export function useForm<T extends Record<string, any>>({ initialValues, onSubmit, validate }: UseFormOptions<T>) {
+export function useForm<T extends Record<string, unknown>>({ initialValues, onSubmit, validate }: UseFormOptions<T>) {
   const [values, setValues] = useState<T>(initialValues)
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({})
   const [submitting, setSubmitting] = useState(false)
 
-  const handleChange = useCallback((name: keyof T, value: any) => {
+  const handleChange = useCallback((name: keyof T, value: T[keyof T]) => {
     setValues((prev) => ({ ...prev, [name]: value }))
     if (errors[name]) {
       setErrors((prev) => {

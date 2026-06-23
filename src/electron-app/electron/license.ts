@@ -1,7 +1,10 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { app, ipcMain } from 'electron';
 import crypto from 'crypto';
+
+function getElectron() {
+  return require('electron');
+}
 
 interface LicenseData {
   machineId: string;
@@ -28,7 +31,7 @@ DQIDAQAB
 -----END PUBLIC KEY-----`;
 
 function getAppDataPath(): string {
-  const path = join(app.getPath('appData'), 'SistemaGVP');
+  const path = join(getElectron().app.getPath('appData'), 'SistemaGVP');
   if (!existsSync(path)) {
     mkdirSync(path, { recursive: true });
   }
@@ -122,6 +125,7 @@ export function activateLicense(licenseKey: string): { success: boolean; message
 }
 
 export function setupLicenseIPC() {
+  const ipcMain = getElectron().ipcMain;
   ipcMain.handle('license:status', () => getLicenseStatus());
-  ipcMain.handle('license:activate', (_event, licenseKey: string) => activateLicense(licenseKey));
+  ipcMain.handle('license:activate', (_event: Electron.IpcMainEvent, licenseKey: string) => activateLicense(licenseKey));
 }

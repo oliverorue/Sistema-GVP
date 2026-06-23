@@ -30,25 +30,38 @@ api.interceptors.response.use(
     Logger.error('api', `HTTP ${status} ${url}`, error)
 
     if (status === 401) {
+      const requestUrl = error.config?.url || error.response?.config?.url || ''
+
+      // Don't intercept login endpoint — let LoginScreen show specific credential error
+      if (requestUrl.includes('/auth/login')) {
+        return Promise.reject(error)
+      }
+
+      // Session expired for authenticated requests
       localStorage.removeItem('gvp_token')
       localStorage.removeItem('gvp_user')
-      window.location.href = '/login'
+      sessionStorage.setItem('gvp_session_expired', 'Sesión expirada. Inicia sesión nuevamente.')
+      window.location.href = './'
       return Promise.reject(new AuthenticationError())
     }
 
     if (status === 403) {
-      return Promise.reject(new ApiError(url, 403, 'No tienes permiso para esta acción'))
+      return Promise.reject(new ApiError(url, 403, 'No tienes permiso'))
+    }
+
+    if (status && status >= 500) {
+      return Promise.reject(new ApiError(url, status, 'Error en servidor'))
     }
 
     if (error.code === 'ECONNABORTED') {
-      return Promise.reject(new Error('La operación tardó demasiado. Intenta nuevamente.'))
+      return Promise.reject(new Error('Operación tardó demasiado'))
     }
 
     if (!error.response) {
-      return Promise.reject(new NetworkError('Error de conexión. Verifica tu internet.'))
+      return Promise.reject(new NetworkError('Error de conexión'))
     }
 
-    const apiMessage = (error.response?.data as any)?.message
+    const apiMessage = (error.response?.data as { message?: string })?.message
     return Promise.reject(
       new ApiError(url, status || 500, apiMessage || error.message, error)
     )

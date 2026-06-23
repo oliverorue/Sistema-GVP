@@ -19,8 +19,8 @@ public class ProductValidator : AbstractValidator<ProductDto>
             .MaximumLength(100).WithMessage("El código de barras no puede exceder 100 caracteres.");
 
         RuleFor(x => x.Sku)
-            .NotEmpty().WithMessage("El SKU es obligatorio.")
-            .MaximumLength(100).WithMessage("El SKU no puede exceder 100 caracteres.");
+            .MaximumLength(100).WithMessage("El SKU no puede exceder 100 caracteres.")
+            .When(x => !string.IsNullOrEmpty(x.Sku));
 
         RuleFor(x => x.Price)
             .GreaterThan(0).WithMessage("El precio debe ser mayor a cero.")

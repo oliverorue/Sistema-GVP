@@ -86,7 +86,7 @@ public class SaleService : ISaleService
                 CompanyId = companyId,
                 UserId = userId,
                 CustomerId = saleDto.CustomerId,
-                InvoiceNumber = string.Empty, // Sin factura hasta que se complete
+                InvoiceNumber = $"HELD-{DateTime.UtcNow:yyyyMMddHHmmssfff}",
                 Subtotal = subtotal,
                 Tax = 0,
                 Discount = totalDiscount,
@@ -127,7 +127,7 @@ public class SaleService : ISaleService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al pausar venta");
-            return ServiceResult<HeldSaleDto>.Failure("Error al pausar la venta.");
+            return ServiceResult<HeldSaleDto>.Failure($"Error al pausar la venta: {ex.Message}");
         }
     }
 
@@ -391,9 +391,10 @@ public class SaleService : ISaleService
                 // 1. Generar número de factura (atómico)
                 var invoiceNumber = await GenerateInvoiceNumberAsync(dto.CompanyId);
 
-                // 2. Obtener la tasa de IVA desde la configuración de la compañía (Tarea 5)
+                // 2. Obtener tasa de IVA desde la compañía y preferir la del DTO
                 var company = await _companyRepository.GetByIdAsync(dto.CompanyId);
-                var taxRate = company?.TaxRate ?? 0.10m; // Fallback a 10% si no hay configuración
+                var taxRate = dto.TaxRate > 0 ? dto.TaxRate : (company?.TaxRate ?? 0.10m);
+                var ivaIncluido = dto.IvaIncluido ?? company?.IvaIncluido ?? true;
 
                 // 3. Calcular totales y preparar detalles
                 decimal subtotal = 0;
@@ -450,12 +451,12 @@ public class SaleService : ISaleService
                     totalCost += product.Cost * itemDto.Quantity;
                 }
 
-                // 4. Calcular impuestos usando la tasa de IVA de la compañía
-                var totalDiscount = dto.Items.Sum(i => i.Discount);
+                // 4. Calcular impuestos e incluir descuento global
+                var totalDiscount = dto.Items.Sum(i => i.Discount) + dto.Discount;
                 decimal tax;
                 decimal total;
 
-                if (company?.IvaIncluido == true)
+                if (ivaIncluido)
                 {
                     // IVA incluido: los precios ya contienen IVA
                     // IVA = total_con_iva / (1 + taxRate) * taxRate
@@ -513,6 +514,20 @@ public class SaleService : ISaleService
 
                 await _saleRepository.AddAsync(sale);
                 await _unitOfWork.CompleteAsync();
+
+                // Update customer balance for credit sales
+                if (dto.PaymentMethod == "Credit" && dto.CustomerId.HasValue)
+                {
+                    var customerEntity = await _customerRepository.GetByIdAsync(dto.CustomerId.Value);
+                    if (customerEntity != null)
+                    {
+                        customerEntity.Balance += total;
+                        _customerRepository.Update(customerEntity);
+                        await _unitOfWork.CompleteAsync();
+                        _logger.LogInformation("Saldo cliente #{CustomerId}: +{Amount}, nuevo saldo = {Balance}",
+                            dto.CustomerId, total, customerEntity.Balance);
+                    }
+                }
 
                 _logger.LogInformation(
                     "Venta #{InvoiceNumber} creada | Total: {Total} | Items: {ItemCount} | IVA: {TaxRate:P}",

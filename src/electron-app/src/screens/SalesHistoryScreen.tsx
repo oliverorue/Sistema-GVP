@@ -26,7 +26,10 @@ export default function SalesHistoryScreen() {
     setLoading(true)
     try {
       const result = await saleService.getHistory({ page, searchTerm: search })
-      if (result.isSuccess && result.data) setSales((result.data as any).items ?? [])
+      if (result.isSuccess && result.data) {
+        const paged = result.data as unknown as { items?: SaleHistory[] }
+        setSales(paged.items ?? [])
+      }
     } catch (err) { Logger.error('SalesHistoryScreen', 'Error al cargar historial', err) } finally { setLoading(false) }
   }, [page, search])
 
