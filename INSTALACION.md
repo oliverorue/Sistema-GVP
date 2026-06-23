@@ -1,221 +1,118 @@
-# INSTALACIÓN Y VENTA — Sistema GVP POS
+# Instalación — Sistema GVP POS
 
-**Guía para el vendedor/revendedor**
-
----
-
-## 📦 Lo que obtenés al buildear
-
-| Archivo | Sistema | Peso aprox. |
-|---------|---------|------------|
-| `Sistema-GVP-2.0.0.AppImage` | Linux | ~120 MB |
-| `Sistema-GVP-2.0.0-Setup.exe` | Windows | ~130 MB |
-
-Ambos son **autónomos** — el cliente no necesita instalar .NET, Node.js ni nada.
+Guía paso a paso para instalar y configurar el sistema.
 
 ---
 
-## 🏗️ Cómo buildear (vos, el vendedor)
+## Requisitos del Sistema
 
-### Requisitos en tu PC
-
-| Herramienta | Para qué |
-|------------|----------|
-| **.NET SDK 8.0** | Compilar el backend |
-| **Node.js 20+** | Compilar el frontend y Electron |
-| **npm** | Viene con Node.js |
-
-### Paso 1 — Poner el logo
-
-Reemplazá el archivo:
-```
-src/electron-app/build/icon.png
-```
-Con tu logo de **256×256 píxeles PNG**. Si no tenés, dejá el placeholder (sale un ícono azul genérico).
-
-### Paso 2 — Buildear
-
-```bash
-# Linux
-scripts/build.sh linux
-
-# Windows
-scripts/build.sh win
-
-# Ambos a la vez
-scripts/build.sh all
-```
-
-Tarda ~3-5 minutos. El resultado queda en:
-```
-src/electron-app/release/
-```
+| Componente | Requisito |
+|------------|-----------|
+| **Sistema Operativo** | Windows 10/11 (64-bit) o Linux |
+| **Procesador** | 1.5 GHz o superior |
+| **Memoria RAM** | 4 GB mínimo, 8 GB recomendado |
+| **Disco** | 500 MB libres |
+| **.NET Runtime** | Incluido en el instalador (no requiere instalación aparte) |
+| **Impresora** | Cualquier impresora térmica o matricial configurada como predeterminada |
 
 ---
 
-## 💰 Cómo venderlo
+## Instalación — Windows
 
-### Modelo sugerido
-
-| Concepto | Precio sugerido |
-|----------|----------------|
-| Licencia única (una PC) | Gs. 500.000 — 1.000.000 |
-| Licencia 2 PCs | Gs. 800.000 — 1.500.000 |
-| Soporte mensual | Gs. 50.000 — 100.000 |
-| Capacitación (1-2 hs) | Gs. 150.000 — 300.000 |
-
-### Qué entregás al cliente
-
-1. **El instalador** (AppImage o .exe)
-2. **Usuario y contraseña inicial** (admin / la que configures)
-3. **Capacitación** (opcional, muy recomendada)
-4. **MANUAL.md** impreso o en PDF
-
-### Proceso de venta típico
-
-1. **Demostración**: mostrale la app funcionando en tu laptop
-2. **Cierre**: acordá el precio y forma de pago
-3. **Instalación**: copiás el instalador a su PC (pendrive o descarga)
-4. **Capacitación**: 1-2 horas enseñándole lo básico (venta, productos, backup)
-5. **Soporte**: quedás disponible por teléfono/WhatsApp para dudas
+1. **Ejecutar el instalador**: haz doble clic en `Sistema-GVP-2.0.0-Setup.exe`
+2. Aparece el asistente de instalación. Haz clic en **Siguiente**.
+3. Elige la carpeta de instalación (deja la que sugiere el instalador).
+4. Marca **"Crear acceso directo en el escritorio"**.
+5. Haz clic en **Instalar** y espera ~30 segundos.
+6. Haz clic en **Finalizar**.
+7. **Iniciar la app**: haz doble clic en el ícono del escritorio.
+8. El sistema arranca el servidor interno (tarda ~10 segundos) y muestra la pantalla de inicio de sesión.
 
 ---
 
-## 💻 Instalación — Paso a paso para el cliente
+## Instalación — Linux
 
-### Opción A — Linux
-
-1. **Copiar el archivo** `Sistema-GVP-2.0.0.AppImage` a la computadora (escritorio)
-2. **Dar permiso de ejecución** (solo la primera vez):
+1. Copia `Sistema-GVP-2.0.0.AppImage` a la computadora (p.ej. el escritorio).
+2. Dale permiso de ejecución:
    - Clic derecho → Propiedades → Permisos → "Permitir ejecutar como programa"
    - O en terminal: `chmod +x Sistema-GVP-2.0.0.AppImage`
-3. **Doble clic** en el archivo
-4. **Listo** — el sistema arranca solo. La base de datos se crea automáticamente.
-
-### Opción B — Windows
-
-1. **Doble clic** en `Sistema-GVP-2.0.0-Setup.exe`
-2. Aparece el instalador. Clic en **Siguiente**.
-3. Elegí la carpeta donde instalar (dejá la que sugiere).
-4. Marcá **"Crear acceso directo en el escritorio"**.
-5. Clic en **Instalar** → esperá ~30 segundos.
-6. Clic en **Finalizar**.
-7. **Doble clic** en el ícono del escritorio.
-8. **Listo** — el sistema arranca solo.
-
-### Qué pasa al abrir por primera vez
-
-1. El sistema inicia el servidor interno (tarda ~10 segundos).
-2. La base de datos se crea automáticamente.
-3. Aparece la pantalla de **Iniciar Sesión**.
+3. Haz doble clic en el archivo. El sistema se inicia automáticamente.
+4. La base de datos se crea en la primera ejecución.
 
 ---
 
-## 🔑 Primer inicio de sesión
+## Primer Inicio de Sesión
 
 | Campo | Valor |
 |-------|-------|
 | **Usuario** | `admin` |
 | **Contraseña** | `admin123` |
 
-**⚠️ El sistema le va a pedir que cambie la contraseña la primera vez que inicia sesión.**
+El sistema solicitará cambiar la contraseña en el primer inicio de sesión.
 
-También hay un usuario cajero de prueba:
+Usuario cajero de prueba:
 
 | Campo | Valor |
 |-------|-------|
 | **Usuario** | `cajero1` |
 | **Contraseña** | `cajero123` |
 
-### Datos de demostración incluidos
-
-El sistema ya viene con datos de ejemplo para que el cliente vea cómo funciona:
-
-| Dato | Cantidad |
-|------|---------|
-| Categorías | 6 (Fijaciones, Materiales, Electricidad, Pinturas, Caños, Ferretería) |
-| Proveedores | 2 |
-| Clientes | 3 (incluye uno con crédito) |
-| Productos | 18 con stock y precios |
-| Empresa demo | "Ferretería Paraguaya S.A." |
-
-El cliente puede **borrar todo esto** y cargar sus propios datos, o usarlo como base.
+El sistema incluye datos de demostración (categorías, productos, clientes) que pueden eliminarse desde el panel de administración.
 
 ---
 
-## ⚙️ Configuración inicial para el cliente
+## Configuración Inicial
 
-Apenas instalado, configurá esto con el cliente:
-
-1. **Datos de la empresa**: Configuración → llenar nombre, RUC, dirección, teléfono (aparece en tickets)
+1. **Datos de la empresa**: Menú Configuración → completar nombre, RUC, dirección, teléfono
 2. **IVA**: Configurar si los precios incluyen IVA o no
-3. **Categorías**: Crear las categorías de productos (Caños, Ferretería, Pinturas...)
-4. **Productos**: Cargar el inventario inicial (con costo y precio de venta)
+3. **Categorías**: Crear las categorías de productos
+4. **Productos**: Cargar el inventario inicial (costo y precio de venta)
 5. **Clientes**: Si manejan crédito, cargar los clientes con límite
 
 ---
 
-## 🛡️ Respaldo (backup)
+## Respaldo (Backup)
 
-**Enseñale esto al cliente el primer día:**
-
-- El sistema hace backup **automático cada 4 horas**
-- También puede hacer backup manual desde el menú **Backup**
-- **Copiar los backups a un pendrive** una vez por semana
-- Los backups están en la carpeta `Backups/` junto al programa
+- El sistema realiza backup automático cada 4 horas
+- Backup manual disponible desde el menú **Backup**
+- Los backups se almacenan en la carpeta `Backups/` junto al programa
+- Se recomienda copiar los backups a un pendrive o ubicación externa periódicamente
 
 ---
 
-## 🆘 Soporte post-venta
-
-### Problemas comunes y solución
+## Solución de Problemas
 
 | Problema | Solución |
-|----------|---------|
-| "No abre" | Cerrar y volver a abrir. Si persiste, reinstalar. |
-| "Error de conexión" | El servidor interno falló. Cerrar y reabrir. |
-| "No imprime" | Verificar que la impresora esté conectada y tenga papel. |
-| "Olvidé la contraseña" | Hay que editar la BD o recrear el usuario. (Soporte técnico) |
-| "Se cortó la luz" | Al volver, abrir normalmente. Los datos no se pierden. |
+|----------|----------|
+| La app no abre | Cerrar y volver a abrir. Si persiste, reinstalar. |
+| Pantalla en blanco o error de conexión | El servidor interno no arrancó. Cerrar y reabrir la app. |
+| El puerto 5000 está ocupado | Cerrar cualquier programa que use el puerto 5000. Si el problema persiste, reiniciar la PC. |
+| El backend no arranca | Verificar que no haya otra instancia ejecutándose. Revisar el firewall. |
+| Error de permisos en Program Files | Ejecutar la app como administrador una vez (clic derecho → "Ejecutar como administrador"). |
+| No imprime | Verificar que la impresora esté encendida, conectada y configurada como predeterminada. |
+| Olvidé la contraseña | Contactar al soporte técnico para restablecer el usuario administrador. |
+| Se cortó la luz | Al reabrir la app los datos no se pierden. El sistema usa SQLite con escritura atómica. |
 
 ---
 
-## 📈 Estrategia de venta
+## Desinstalación
 
-### A quién venderle
+### Windows
+1. Abrir **Configuración** → **Aplicaciones** → **Aplicaciones instaladas**
+2. Buscar "Sistema GVP" y hacer clic en **Desinstalar**
+3. Confirmar la desinstalación
+4. (Opcional) Eliminar la carpeta `%APPDATA%\sistema-gvp` para borrar la base de datos y configuración
 
-- Ferreterías de barrio (1-3 empleados)
-- Minimercados y almacenes
-- Librerías
-- Cualquier comercio que venda productos físicos
-
-### Cómo hacer la demo
-
-1. **Creá un producto** (ej: "Lija N°100")
-2. **Vendelo** (buscá el producto, agregá al carrito, cobrá)
-3. **Mostrá el ticket**
-4. **Mostrá el dashboard** con la venta del día
-5. **Creá un cliente con crédito** y mostrá cómo se vende fiado
-6. **Mostrá el backup** — "nunca pierde los datos"
-
-### Diferenciadores (qué decir)
-
-- ✅ **No necesita internet** — funciona hasta en el campo
-- ✅ **No necesita servidor** — todo en una PC
-- ✅ **Backup automático** — nunca pierde datos
-- ✅ **Crédito y cobranza** — ideal para clientes que compran fiado
-- ✅ **Factura electrónica** (si se configura)
-- ✅ **Sin costo mensual** — se paga una sola vez
+### Linux
+Eliminar el archivo AppImage y la carpeta de configuración en `~/.config/sistema-gvp`.
 
 ---
 
-## 🔄 Actualizaciones
+## Actualizaciones
 
-Cuando saques una nueva versión:
-
-1. Buildear con el nuevo número de versión (cambiar en `package.json`)
-2. Entregar el nuevo instalador al cliente
-3. El cliente instala encima (los datos se mantienen porque la BD está en otra carpeta)
+1. Descargar la nueva versión del instalador
+2. Ejecutar el instalador sobre la instalación existente
+3. Los datos se conservan (la base de datos está en `%APPDATA%`, no en la carpeta del programa)
 
 ---
 

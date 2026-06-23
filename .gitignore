@@ -39,6 +39,10 @@ src/electron-app/dist-electron/
 src/electron-app/release/
 src/electron-app/backend-publish/
 
+# Development helper scripts (not for production)
+scripts/start.bat
+scripts/start.sh
+
 # Runtime artifacts
 api.err
 api.log

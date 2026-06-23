@@ -1,6 +1,12 @@
-﻿# Sistema GVP POS — Electron + React + .NET 8
+﻿# Sistema GVP POS — Electron + React + .NET 9
 
-Sistema de Punto de Venta (POS) moderno con frontend React (Electron), backend .NET 8 Minimal API y SQLite.
+![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet)
+![Electron](https://img.shields.io/badge/Electron-31-47848F?logo=electron)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
+**Sistema GVP** — Punto de venta para ferreterías. Desktop app offline-first con Electron + React + .NET 9 + SQLite.
 
 ---
 
@@ -8,7 +14,7 @@ Sistema de Punto de Venta (POS) moderno con frontend React (Electron), backend .
 
 ### Prerrequisitos
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - [Node.js 18+](https://nodejs.org/)
 - Windows 10/11 o Linux
 
@@ -26,22 +32,7 @@ scripts\setup.bat
 
 Esto restaura paquetes NuGet, compila la solución, instala dependencias del frontend y crea la base de datos SQLite.
 
-### Modo desarrollo
-
-**Windows:**
-```
-scripts\start.bat
-```
-
-**Linux:**
-```bash
-./scripts/start.sh
-```
-
-Opción 1: API (http://127.0.0.1:5000) + Vite (http://localhost:5173)
-Opción 2: Solo API
-
-### Modo producción
+### Build producción
 
 **Windows:**
 ```
@@ -54,11 +45,6 @@ scripts\build.bat
 ```
 
 Esto compila el backend .NET como standalone (linux-x64 en Linux, win-x64 en Windows) y empaqueta la aplicación con electron-builder. El instalador se genera en `src/electron-app/release/`.
-
-```
-scripts\start.bat  →  Opción 3 (Windows)
-./scripts/start.sh →  Opción 3 (Linux)
-```
 
 ---
 
@@ -102,7 +88,7 @@ scripts\start.bat  →  Opción 3 (Windows)
 
 ```
 src/
-├── SistemaGVP.API/             # Minimal API .NET 8 (56 endpoints)
+├── SistemaGVP.API/             # Minimal API .NET 9 (56 endpoints)
 ├── SistemaGVP.Domain/          # Entidades y Enums
 ├── SistemaGVP.Application/     # DTOs, Servicios, Interfaces
 ├── SistemaGVP.Infrastructure/  # EF Core, Repositorios, SQLite
@@ -117,7 +103,7 @@ src/
     │   ├── types/              # TypeScript interfaces
     │   └── utils/              # Formatters, constants
     └── ...
-scripts/                        # build.bat, setup.bat, start.bat, generate-keys.js
+scripts/                        # build.bat, setup.bat, generate-keys.js
 tests/                          # .NET unit tests
 ```
 
@@ -127,7 +113,7 @@ tests/                          # .NET unit tests
 
 | Frontend | Backend |
 |----------|---------|
-| React 19 + TypeScript | .NET 8 Minimal API |
+| React 19 + TypeScript | .NET 9 Minimal API |
 | Vite 6 | Entity Framework Core |
 | Tailwind CSS 3 | SQLite |
 | Zustand (estado) | AutoMapper |
@@ -171,10 +157,16 @@ tests/                          # .NET unit tests
 
 ## Solución de Problemas
 
-**Error: "No se encuentra dotnet"** → Instalar .NET 8 SDK
+**Error: "No se encuentra dotnet"** → Instalar .NET 9 SDK
 
 **Error de base de datos** → Eliminar `sistemagvp.db` y ejecutar `scripts\setup.bat`
 
 **La app Electron no abre** → Verificar que `scripts\build.bat` se ejecutó primero (modo producción)
 
 **Impresión no funciona** → Configurar impresora predeterminada en Windows
+
+---
+
+## Licencia
+
+Este proyecto está licenciado bajo la licencia MIT. Consulte el archivo [LICENSE](LICENSE) para más detalles.
